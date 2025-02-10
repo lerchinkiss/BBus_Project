@@ -13,7 +13,7 @@ def extract_bus_data(url):
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            # Извлечение заголовка страницы - название транспорта
+            # Извлечение заголовка страницы (название транспорта)
             title = soup.title.string.strip()
             bus_name = title.split("Трансфер и аренда")[1].strip() if "Трансфер и аренда" in title else title
             bus_name = clean_bus_name(bus_name)
@@ -125,6 +125,7 @@ urls = [
     "https://bbus.ru/catalog/hongqi-hq9",
     "https://bbus.ru/catalog/gac-gn8-6-mest"]
 
+
 datasets_folder = "datasets"
 if not os.path.exists(datasets_folder):
     os.makedirs(datasets_folder)
@@ -152,7 +153,7 @@ df_transfer = pd.DataFrame(all_transfer_prices)
 # Сохранение файлов в формате UTF-8 с BOM
 def save_csv_with_bom(df, filename):
     output_path = os.path.join(datasets_folder, filename)
-    df.to_csv(output_path, index=False, encoding="utf-8-sig")
+    df.to_csv(output_path, index=False, encoding="utf-8-sig")  # Используем UTF-8 с BOM
     print(f"Файл сохранён: {output_path}")
 
 save_csv_with_bom(df_details, "bus_details.csv")
