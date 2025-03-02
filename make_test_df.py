@@ -87,7 +87,7 @@ for i, client_id in enumerate(client_orders):
     else:
         selected_bus = bus_details_df.sample(1).iloc[0]
 
-    bus_id = selected_bus.name % 41 + 1  
+    bus_id = selected_bus.name % 41 + 1
     bus_type = selected_bus["bus_type"]
     max_capacity = selected_bus["Вместимость"]
 
