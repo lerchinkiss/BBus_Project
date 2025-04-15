@@ -6,27 +6,40 @@ file_path = os.path.join("datasets", "generated_orders_upgrade.csv")
 
 # Загрузка данных
 try:
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, encoding="utf-8-sig")
 except FileNotFoundError:
     st.error("Файл не найден. Проверьте путь к файлу.")
     st.stop()
 
+# Проверяем названия колонок
+st.write("Колонки в файле:", df.columns.tolist())
+
+# Удаляем лишние пробелы в названиях колонок
+df.columns = df.columns.str.strip()
+
+# Проверяем наличие нужных колонок
+required_columns = ['время_начала', 'время_окончания']
+missing_columns = [col for col in required_columns if col not in df.columns]
+
+if missing_columns:
+    st.error(f"Отсутствуют колонки: {missing_columns}. Проверьте загружаемый файл.")
+    st.stop()
+
 # Преобразуем даты и время
-for col in ['время_начала', 'время_окончания']:
+for col in required_columns:
     df[col] = pd.to_datetime(df[col])
 
 df['длительность_поездки'] = (df['время_окончания'] - df['время_начала']).dt.total_seconds() / 3600  # В часах
 
-# Заголовок веб-приложения
 st.title("АНАЛИЗ БРОНИ ТРАНСПОРТОВ")
 
 st.header("📊 Общая статистика")
 
-# Самый популярное авто
+# Самый популярный транспорт
 bus_popularity = df['bus_id'].value_counts()
 most_popular_bus = bus_popularity.idxmax()
 most_popular_bus_count = bus_popularity.max()
-st.write(f"**Самый популярный трнаспорт:** {most_popular_bus} (бронировали {most_popular_bus_count} раз)")
+st.write(f"**Самый популярный транспорт:** {most_popular_bus} (бронировали {most_popular_bus_count} раз)")
 
 # Средняя длительность поездки
 avg_booking_time = df['длительность_поездки'].mean()
@@ -78,6 +91,3 @@ st.bar_chart(payment_status_counts)
 # График количества бронирований по дням недели
 day_counts = df['день_недели'].value_counts()
 st.bar_chart(day_counts)
-
-
-
