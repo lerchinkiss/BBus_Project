@@ -1,17 +1,18 @@
 import os
 import pandas as pd
 
-# Словарь: колонка в bbOrders → (имя файла, колонка для связи)
-filtered_path = 'filtered_datasets'
-raw_path = 'datasets'
+# Текущий путь до этого файла
+BASE_DIR = os.path.dirname(__file__)
+filtered_path = os.path.join(BASE_DIR, 'filtered_datasets')
+raw_path = os.path.join(BASE_DIR, 'datasets')
 
 # Загружаем основной датафрейм
 orders_path = os.path.join(filtered_path, 'bbOrders_filtered.xlsx')
 bbOrders = pd.read_excel(orders_path)
 
-def apply_links(bbOrders, filtered_path='filtered_datasets', raw_path='datasets'):
+def apply_links(bbOrders, filtered_path=filtered_path, raw_path=raw_path):
     reference_mapping = {
-        'Заказчик': ('contragents_filtered', 'Ref'), 
+        'Заказчик': ('contragents_filtered', 'Ref'),
         'ТС': ('uatTS_filtered', 'Ref'),
         'КонтактноеЛицо': ('PartnerContacts_filtered', 'Ref'),
         'Организация': ('Organizations_filtered', 'Ref'),
@@ -48,6 +49,3 @@ def apply_links(bbOrders, filtered_path='filtered_datasets', raw_path='datasets'
         print(f"{col} → {filename}.Description")
 
     return bbOrders
-
-
-
