@@ -1,0 +1,4 @@
+Flask
+catboost
+pandas
+openpyxl
