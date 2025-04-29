@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анализ потребительских предпочтений | BBus</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      background-color: white;
+    }
+    .top-bar {
+      background-color: #800000;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .top-bar img {
+      height: 50px;
+      margin-right: 15px;
+    }
+    .top-bar .title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .subtitle {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .main-section {
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-box, .preferences-box {
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 48%;
+    }
+    .form-box input, .form-box select {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    .form-box button {
+      padding: 10px 15px;
+      background-color: #800000;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .table-box {
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <img src="acb9ec4b-8d7e-4b00-8fd5-aae5f20b2a78.png" alt="BBUS Logo">
+    <div>
+      <div class="title">BBUS</div>
+      <div class="subtitle">Режим менеджера</div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="main-section">
+      <div class="form-box">
+        <div class="section-title">Оформление заявки подбором ТС</div>
+        <select id="company-select">
+          <option>Выберите компанию</option>
+          <option>Новая компания</option>
+        </select>
+        <input type="text" placeholder="Введите название новой компании" style="display:none;" id="new-company-name">
+        <input type="number" placeholder="Количество пассажиров (максимум 59)" max="59">
+        <input type="number" placeholder="Стоимость за час аренды (руб.)">
+        <input type="number" placeholder="Количество часов аренды">
+        <select>
+          <option>Статус заказа</option>
+          <option>Стандарт</option>
+          <option>Свадьба</option>
+          <option>Дети</option>
+        </select>
+        <button onclick="alert('Подбор выполнен (заглушка).')">Подобрать</button>
+      </div>
+      <div class="preferences-box">
+        <div class="section-title">Предпочтения клиента</div>
+        <p>Появятся после подбора транспорта...</p>
+      </div>
+    </div>
+
+    <div class="table-box">
+      <div class="section-title">История последних заказов клиента</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Первый заказ клиента</th>
+            <th>Колонка</th>
+            <th>Колонка</th>
+            <th>Колонка</th>
+            <th>Колонка</th>
+            <th>Колонка</th>
+            <th>Колонка</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7">(будет заполнено при выборе клиента)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const companySelect = document.getElementById('company-select');
+    const newCompanyInput = document.getElementById('new-company-name');
+
+    companySelect.addEventListener('change', () => {
+      newCompanyInput.style.display = companySelect.value === 'Новая компания' ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>
