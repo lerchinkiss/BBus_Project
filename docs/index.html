@@ -6,381 +6,253 @@
   <title>Анализ потребительских предпочтений | BBus</title>
   <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Advent Pro', sans-serif;
-      margin: 0;
-      background-color: white;
-    }
-    .top-bar {
-      background-color: #800000;
-      color: white;
-      display: flex;
-      align-items: center;
-      padding: 10px 20px;
-    }
-    .top-bar img {
-      height: 50px;
-      margin-right: 15px;
-    }
-    .top-bar .title {
-      font-size: 24px;
-      font-weight: bold;
-    }
-    .subtitle {
-      font-size: 12px;
-      margin-top: 2px;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-    .main-section {
-      display: flex;
-      justify-content: space-between;
-    }
-    .form-box, .preferences-box {
-      border: 1px solid #ccc;
-      padding: 20px;
-      width: 48%;
-      position: relative;
-      box-sizing: border-box;
-      margin-bottom: 60px;
-    }
-    .form-box label {
-      font-weight: 600;
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 8px;
-    }
-    .form-box input, .form-box select {
-      display: block;
-      width: calc(100% - 16px);
-      padding: 8px;
-      margin-bottom: 15px;
-      font-size: 16px;
-      font-family: 'Advent Pro', sans-serif;
-      box-sizing: border-box;
-    }
-    .form-box select {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      background-size: 16px;
-      padding-right: 32px;
-    }
-    .company-list input {
-      padding-right: 32px;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      background-size: 16px;
-    }
-    .form-box button {
-      padding: 10px 20px;
-      color: #800000;
-      border: 2px solid #800000;
-      background-color: white;
-      cursor: pointer;
-      font-weight: bold;
-      font-family: 'Advent Pro', sans-serif;
-      position: absolute;
-      right: 20px;
-      bottom: -50px;
-    }
-    #new-company-block {
-      background-color: #fff8f8;
-      border: 1px solid #ffcccc;
-      border-radius: 4px;
-      padding: 15px;
-      margin-top: 15px;
-      transition: all 0.3s ease;
-    }
-    #new-company-block label {
-      color: #800000;
-      font-weight: bold;
-    }
-    #new-company-block input {
-      border: 1px solid #ffcccc;
-      background-color: white;
-    }
-    #new-company-block input:focus {
-      border-color: #800000;
-      outline: none;
-      box-shadow: 0 0 5px rgba(128, 0, 0, 0.2);
-    }
-    .table-box {
-      margin-top: 30px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-    }
-    .section-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .warning {
-      color: red;
-      font-size: 14px;
-      margin-top: -8px;
-      margin-bottom: 8px;
-    }
+    body { font-family: 'Advent Pro', sans-serif; margin: 0; background-color: white; }
+    .top-bar { background-color: #800000; color: white; display: flex; align-items: center; padding: 10px 20px; }
+    .top-bar img { height: 50px; margin-right: 15px; }
+    .top-bar .title { font-size: 24px; font-weight: bold; }
+    .subtitle { font-size: 12px; margin-top: 2px; }
+    .container { display: flex; flex-direction: column; padding: 20px; }
+    .main-section { display: flex; justify-content: space-between; }
+    .form-box, .preferences-box { border: 1px solid #ccc; padding: 20px; width: 48%; position: relative; box-sizing: border-box; margin-bottom: 60px; }
+    .form-box label { font-weight: 600; display: block; margin-top: 15px; margin-bottom: 8px; }
+    .form-box input, .form-box select { display: block; width: calc(100% - 16px); padding: 8px; margin-bottom: 15px; font-size: 16px; font-family: 'Advent Pro', sans-serif; box-sizing: border-box; }
+    .form-box select, .company-list input { background-repeat: no-repeat; background-position: right 8px center; background-size: 16px; }
+    .form-box button { padding: 10px 20px; color: #800000; border: 2px solid #800000; background-color: white; cursor: pointer; font-weight: bold; font-family: 'Advent Pro', sans-serif; position: absolute; right: 20px; bottom: -50px; }
+    #new-company-block { background-color: #fff8f8; border: 1px solid #ffcccc; border-radius: 4px; padding: 15px; margin-top: 15px; transition: all 0.3s ease; }
+    #new-company-block label { color: #800000; font-weight: bold; }
+    .table-box { margin-top: 30px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    .section-title { font-weight: bold; margin-bottom: 10px; }
+    .warning { color: red; font-size: 14px; margin-top: -8px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <a href="site/bbus_logo"><img src="2ef9d91a-4339-4d23-8384-8625929beb89.png" alt="BBUS Logo"></a>
-    <div>
-      <div class="title">BBUS</div>
-      <div class="subtitle">Режим менеджера</div>
-    </div>
+<div class="top-bar">
+  <a href="site/bbus_logo"><img src="2ef9d91a-4339-4d23-8384-8625929beb89.png" alt="BBUS Logo"></a>
+  <div>
+    <div class="title">BBUS</div>
+    <div class="subtitle">Режим менеджера</div>
   </div>
-  <div class="container">
-    <div class="main-section">
-      <div class="form-box">
-        <div class="section-title">Оформление заявки подбором ТС</div>
-        <label for="company-input">Название компании</label>
-        <div class="company-list">
-          <input type="text" id="company-input" placeholder="Начните ввод..." oninput="filterCompanies()" onfocus="showAllCompanies()">
-          <div id="company-suggestions" class="company-suggestions" style="display: none;"></div>
-        </div>
-        <div id="new-company-block" style="display:none; margin-top:10px;">
-          <label for="new-company-name">Введите название новой компании</label>
-          <input type="text" id="new-company-name" placeholder="ООО ПиФМ">
-        </div>
-
-        <label for="passengers">Количество пассажиров (максимум 59)</label>
-        <input type="number" id="passengers" placeholder="Введите число" max="59" onblur="validatePassengers(this)">
-        <div id="passenger-warning" class="warning" style="display: none;">Введите значение от 1 до 59</div>
-
-        <label for="price">Стоимость за час аренды (руб.)</label>
-        <input type="number" id="price" placeholder="Введите число">
-
-        <label for="hours">Количество часов аренды</label>
-        <input type="number" id="hours" placeholder="Введите число">
-
-        <label for="status">Статус заказа</label>
-        <select id="status">
-          <option>Стандарт</option>
-          <option>Свадьба</option>
-          <option>Дети</option>
-        </select>
-
-        <button onclick="alert('Подбор выполнен (заглушка).')">Подобрать</button>
+</div>
+<div class="container">
+  <div class="main-section">
+    <div class="form-box">
+      <div class="section-title">Оформление заявки подбором ТС</div>
+      <label for="company-input">Название компании</label>
+      <div class="company-list">
+        <input type="text" id="company-input" placeholder="Начните ввод..." oninput="filterCompanies()" onfocus="showAllCompanies()">
+        <div id="company-suggestions" class="company-suggestions" style="display: none;"></div>
       </div>
-
-      <div class="preferences-box">
-        <div class="section-title">Предпочтения клиента</div>
-        <p>Появятся после подбора транспорта...</p>
+      <div id="new-company-block" style="display:none; margin-top:10px;">
+        <label for="new-company-name">Введите название новой компании</label>
+        <input type="text" id="new-company-name" placeholder="ООО ПиФМ">
       </div>
+      <label for="passengers">Количество пассажиров (максимум 59)</label>
+      <input type="number" id="passengers" placeholder="Введите число" max="59" onblur="validatePassengers(this)">
+      <div id="passenger-warning" class="warning" style="display: none;">Введите значение от 1 до 59</div>
+      <label for="price">Стоимость за час аренды (руб.)</label>
+      <input type="number" id="price" placeholder="Введите число">
+      <label for="hours">Количество часов аренды</label>
+      <input type="number" id="hours" placeholder="Введите число">
+      <label for="status">Статус заказа</label>
+      <select id="status">
+        <option>Стандарт</option>
+        <option>Свадьба</option>
+        <option>Дети</option>
+      </select>
+      <button id="submit-button">Подобрать</button>
     </div>
 
-    <div class="table-box">
-      <div class="section-title">История последних заказов клиента</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Первый заказ клиента</th>
-            <th>Колонка</th>
-            <th>Колонка</th>
-            <th>Колонка</th>
-            <th>Колонка</th>
-            <th>Колонка</th>
-            <th>Колонка</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="7">(будет заполнено при выборе клиента)</td></tr>
-        </tbody>
-      </table>
+    <div class="preferences-box">
+      <div class="section-title">Предпочтения клиента</div>
+      <p>Появятся после подбора транспорта...</p>
     </div>
   </div>
 
-  <script>
-    let knownCompanies = [];
+  <div class="table-box">
+    <div class="section-title">История последних заказов клиента</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Первый заказ клиента</th>
+          <th>Колонка</th>
+          <th>Колонка</th>
+          <th>Колонка</th>
+          <th>Колонка</th>
+          <th>Колонка</th>
+          <th>Колонка</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="7">(будет заполнено при выборе клиента)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-    // Загрузка списка компаний при старте
-    fetch('/api/companies')
+<script>
+const API_BASE = 'https://bbus-project.onrender.com';
+
+let knownCompanies = [];
+
+fetch(`${API_BASE}/api/companies`)
+  .then(response => response.json())
+  .then(companies => {
+    knownCompanies = companies;
+    showAllCompanies();
+  });
+
+function showAllCompanies() {
+  const input = document.getElementById('company-input').value.toLowerCase();
+  renderCompanySuggestions(input, true);
+}
+
+function filterCompanies() {
+  const input = document.getElementById('company-input').value.toLowerCase();
+  renderCompanySuggestions(input, false);
+}
+
+function renderCompanySuggestions(filter, showAll) {
+  const suggestions = document.getElementById('company-suggestions');
+  suggestions.innerHTML = '';
+
+  const matches = showAll ? knownCompanies : knownCompanies.filter(name => name.toLowerCase().includes(filter));
+
+  matches.forEach(company => {
+    const div = document.createElement('div');
+    div.textContent = company;
+    div.onclick = () => selectCompany(company);
+    suggestions.appendChild(div);
+  });
+
+  if (filter && !knownCompanies.some(name => name.toLowerCase() === filter)) {
+    const div = document.createElement('div');
+    div.textContent = 'Новый заказчик';
+    div.style.fontWeight = 'bold';
+    div.style.color = '#800000';
+    div.onclick = () => selectCompany('Новый заказчик');
+    suggestions.appendChild(div);
+  }
+
+  suggestions.style.display = 'block';
+}
+
+function selectCompany(name) {
+  const input = document.getElementById('company-input');
+  const newCompanyBlock = document.getElementById('new-company-block');
+  const newCompanyInput = document.getElementById('new-company-name');
+  const preferencesBox = document.querySelector('.preferences-box');
+
+  if (name === 'Новый заказчик') {
+    input.value = newCompanyInput.value || 'Новый заказчик';
+    newCompanyBlock.style.display = 'block';
+    if (!newCompanyInput.value) {
+      newCompanyInput.focus();
+    }
+    preferencesBox.innerHTML = '<div class="section-title">Предпочтения клиента</div><p>Нет данных для нового заказчика</p>';
+  } else {
+    input.value = name;
+    newCompanyBlock.style.display = 'none';
+    newCompanyInput.value = '';
+
+    fetch(`${API_BASE}/api/customer_profile/${encodeURIComponent(name)}`)
       .then(response => response.json())
-      .then(companies => {
-        knownCompanies = companies;
-        showAllCompanies();
-      });
-
-    function showAllCompanies() {
-      const input = document.getElementById('company-input').value.toLowerCase();
-      renderCompanySuggestions(input, true);
-    }
-
-    function filterCompanies() {
-      const input = document.getElementById('company-input').value.toLowerCase();
-      renderCompanySuggestions(input, false);
-    }
-
-    function renderCompanySuggestions(filter, showAll) {
-      const suggestions = document.getElementById('company-suggestions');
-      suggestions.innerHTML = '';
-
-      const matches = showAll ? 
-        knownCompanies : 
-        knownCompanies.filter(name => name.toLowerCase().includes(filter));
-
-      matches.forEach(company => {
-        const div = document.createElement('div');
-        div.textContent = company;
-        div.onclick = () => selectCompany(company);
-        suggestions.appendChild(div);
-      });
-
-      if (filter && !knownCompanies.some(name => name.toLowerCase() === filter)) {
-        const div = document.createElement('div');
-        div.textContent = 'Новый заказчик';
-        div.style.fontWeight = 'bold';
-        div.style.color = '#800000';
-        div.onclick = () => selectCompany('Новый заказчик');
-        suggestions.appendChild(div);
-      }
-
-      suggestions.style.display = 'block';
-    }
-
-    function selectCompany(name) {
-      const input = document.getElementById('company-input');
-      const newCompanyBlock = document.getElementById('new-company-block');
-      const newCompanyInput = document.getElementById('new-company-name');
-      const preferencesBox = document.querySelector('.preferences-box');
-      
-      if (name === 'Новый заказчик') {
-        input.value = newCompanyInput.value || 'Новый заказчик';
-        newCompanyBlock.style.display = 'block';
-        if (!newCompanyInput.value) {
-          newCompanyInput.focus();
-        }
-        preferencesBox.innerHTML = '<div class="section-title">Предпочтения клиента</div><p>Нет данных для нового заказчика</p>';
-      } else {
-        input.value = name;
-        newCompanyBlock.style.display = 'none';
-        newCompanyInput.value = '';
-        
-        // Загрузка профиля клиента
-        fetch(`/api/customer_profile/${encodeURIComponent(name)}`)
-          .then(response => response.json())
-          .then(profile => {
-            if (profile.error) {
-              preferencesBox.innerHTML = `
-                <div class="section-title">Предпочтения клиента</div>
-                <p>Нет данных по заказчику</p>
-              `;
-            } else {
-              preferencesBox.innerHTML = `
-                <div class="section-title">Предпочтения клиента</div>
-                <p><strong>Любимый тип ТС:</strong> ${profile.любимый_тип_тс}</p>
-                <p><strong>Любимая модель ТС:</strong> ${profile.исторический_любимый_тс}</p>
-                <p><strong>Любимый статус заказа:</strong> ${profile.любимый_статус_заказа}</p>
-                <p><strong>Среднее количество пассажиров:</strong> ${profile.среднее_пассажиров.toFixed(1)}</p>
-                <p><strong>Всего заказов:</strong> ${profile.всего_заказов}</p>
-              `;
-            }
-          });
-      }
-      
-      document.getElementById('company-suggestions').style.display = 'none';
-    }
-
-    function validatePassengers(input) {
-      const warning = document.getElementById('passenger-warning');
-      if (input.value < 1 || input.value > 59) {
-        warning.style.display = 'block';
-      } else {
-        warning.style.display = 'none';
-      }
-    }
-
-    document.getElementById('new-company-name').addEventListener('input', function(e) {
-      const input = document.getElementById('company-input');
-      const newCompanyInput = document.getElementById('new-company-name');
-      if (input.value === 'Новый заказчик') {
-        input.value = newCompanyInput.value;
-      }
-    });
-
-    document.addEventListener('click', function(e) {
-      const companyList = document.querySelector('.company-list');
-      const suggestions = document.getElementById('company-suggestions');
-      if (!companyList.contains(e.target)) {
-        suggestions.style.display = 'none';
-      }
-    });
-
-    // Обработка кнопки "Подобрать"
-    document.querySelector('.form-box button').onclick = function(e) {
-      e.preventDefault();
-      
-      const company = document.getElementById('company-input').value;
-      const passengers = document.getElementById('passengers').value;
-      const price = document.getElementById('price').value;
-      const status = document.getElementById('status').value;
-
-      if (!company || !passengers || !price) {
-        alert('Пожалуйста, заполните все поля формы');
-        return;
-      }
-
-      if (passengers < 1 || passengers > 59) {
-        alert('Количество пассажиров должно быть от 1 до 59');
-        return;
-      }
-
-      const data = {
-        company: company,
-        passengers: parseInt(passengers),
-        price: parseInt(price),
-        status: status
-      };
-
-      fetch('/api/recommend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      })
-      .then(response => response.json())
-      .then(recommendations => {
-        const preferencesBox = document.querySelector('.preferences-box');
-        let html = '<div class="section-title">Рекомендованные типы ТС</div>';
-        
-        if (recommendations.length === 0) {
-          html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
+      .then(profile => {
+        if (profile.error) {
+          preferencesBox.innerHTML = `<div class="section-title">Предпочтения клиента</div><p>Нет данных по заказчику</p>`;
         } else {
-          recommendations.forEach(rec => {
-            html += `
-              <div class="recommendation">
-                <p><strong>${rec.type}</strong> (вместимость: ${rec.capacity} мест)</p>
-                <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
-              </div>
-            `;
-          });
+          preferencesBox.innerHTML = `<div class="section-title">Предпочтения клиента</div>
+            <p><strong>Любимый тип ТС:</strong> ${profile.любимый_тип_тс}</p>
+            <p><strong>Любимая модель ТС:</strong> ${profile.исторический_любимый_тс}</p>
+            <p><strong>Любимый статус заказа:</strong> ${profile.любимый_статус_заказа}</p>
+            <p><strong>Среднее количество пассажиров:</strong> ${profile.среднее_пассажиров.toFixed(1)}</p>
+            <p><strong>Всего заказов:</strong> ${profile.всего_заказов}</p>`;
         }
-        
-        preferencesBox.innerHTML = html;
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка при получении рекомендаций');
       });
-    };
-  </script>
+  }
+
+  document.getElementById('company-suggestions').style.display = 'none';
+}
+
+function validatePassengers(input) {
+  const warning = document.getElementById('passenger-warning');
+  if (input.value < 1 || input.value > 59) {
+    warning.style.display = 'block';
+  } else {
+    warning.style.display = 'none';
+  }
+}
+
+document.getElementById('new-company-name').addEventListener('input', function(e) {
+  const input = document.getElementById('company-input');
+  const newCompanyInput = document.getElementById('new-company-name');
+  if (input.value === 'Новый заказчик') {
+    input.value = newCompanyInput.value;
+  }
+});
+
+document.addEventListener('click', function(e) {
+  const companyList = document.querySelector('.company-list');
+  const suggestions = document.getElementById('company-suggestions');
+  if (!companyList.contains(e.target)) {
+    suggestions.style.display = 'none';
+  }
+});
+
+document.getElementById('submit-button').onclick = function(e) {
+  e.preventDefault();
+
+  const company = document.getElementById('company-input').value;
+  const passengers = document.getElementById('passengers').value;
+  const price = document.getElementById('price').value;
+  const status = document.getElementById('status').value;
+
+  if (!company || !passengers || !price) {
+    alert('Пожалуйста, заполните все поля формы');
+    return;
+  }
+
+  if (passengers < 1 || passengers > 59) {
+    alert('Количество пассажиров должно быть от 1 до 59');
+    return;
+  }
+
+  const data = {
+    company: company,
+    passengers: parseInt(passengers),
+    price: parseInt(price),
+    status: status
+  };
+
+  fetch(`${API_BASE}/api/recommend`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(recommendations => {
+    const preferencesBox = document.querySelector('.preferences-box');
+    let html = '<div class="section-title">Рекомендованные типы ТС</div>';
+
+    if (recommendations.length === 0) {
+      html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
+    } else {
+      recommendations.forEach(rec => {
+        html += `<div class="recommendation">
+          <p><strong>${rec.type}</strong> (вместимость: ${rec.capacity} мест)</p>
+          <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
+        </div>`;
+      });
+    }
+
+    preferencesBox.innerHTML = html;
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Произошла ошибка при получении рекомендаций');
+  });
+}
+</script>
 </body>
 </html>
