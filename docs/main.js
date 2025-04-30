@@ -1,4 +1,4 @@
-// === main.js (обновлён и улучшен) ===
+// === main.js ===
 
 let knownCompanies = [];
 
@@ -8,32 +8,37 @@ fetch('https://bbus-project.onrender.com/api/companies')
     knownCompanies = companies;
   });
 
-function showCompanySuggestions() {
-  const suggestions = document.getElementById('company-suggestions');
-  suggestions.innerHTML = '';
-  knownCompanies.slice(0, 8).forEach(company => {
-    const div = document.createElement('div');
-    div.textContent = company;
-    div.onclick = () => selectCompany(company);
-    suggestions.appendChild(div);
-  });
-  suggestions.style.display = 'block';
-}
+const input = document.getElementById('company-input');
+const suggestions = document.getElementById('company-suggestions');
+
+input.addEventListener('input', filterCompanies);
+input.addEventListener('focus', showAllCompanies);
+document.addEventListener('click', e => {
+  if (!e.target.closest('.company-list')) {
+    suggestions.style.display = 'none';
+  }
+});
 
 function filterCompanies() {
-  const input = document.getElementById('company-input');
   const value = input.value.toLowerCase();
-  const suggestions = document.getElementById('company-suggestions');
-  suggestions.innerHTML = '';
   const filtered = knownCompanies.filter(name => name.toLowerCase().includes(value));
+  renderCompanySuggestions(filtered);
+}
 
-  (filtered.length ? filtered : knownCompanies.slice(0, 8)).forEach(company => {
+function showAllCompanies() {
+  renderCompanySuggestions(knownCompanies);
+}
+
+function renderCompanySuggestions(companies) {
+  suggestions.innerHTML = '';
+  companies.forEach(company => {
     const div = document.createElement('div');
     div.textContent = company;
     div.onclick = () => selectCompany(company);
     suggestions.appendChild(div);
   });
 
+  const value = input.value.toLowerCase();
   if (value && !knownCompanies.some(name => name.toLowerCase() === value)) {
     const div = document.createElement('div');
     div.textContent = 'Новый заказчик';
@@ -42,14 +47,12 @@ function filterCompanies() {
     div.onclick = () => selectCompany('Новый заказчик');
     suggestions.appendChild(div);
   }
-
   suggestions.style.display = 'block';
 }
 
 function selectCompany(name) {
-  const input = document.getElementById('company-input');
   input.value = name;
-  document.getElementById('company-suggestions').style.display = 'none';
+  suggestions.style.display = 'none';
 
   const preferencesBox = document.querySelector('.preferences-box');
   const recommendationsBox = document.querySelector('.recommendations-box');
@@ -91,8 +94,7 @@ function selectCompany(name) {
           <td>${row.тип}</td>
           <td>${row.статус}</td>
           <td>${row.маршрут}</td>
-        </tr>
-      `).join('') : '<tr><td colspan="7">История заказов отсутствует</td></tr>';
+        </tr>`).join('') : '<tr><td colspan="7">История заказов отсутствует</td></tr>';
       document.querySelector('.table-box tbody').innerHTML = rows;
     });
 }
@@ -137,12 +139,3 @@ document.getElementById('submit-button').onclick = function(e) {
       box.innerHTML = html;
     });
 };
-
-document.getElementById('company-input').addEventListener('focus', showCompanySuggestions);
-document.addEventListener('click', function(e) {
-  const suggestions = document.getElementById('company-suggestions');
-  const input = document.getElementById('company-input');
-  if (!input.contains(e.target) && !suggestions.contains(e.target)) {
-    suggestions.style.display = 'none';
-  }
-});
