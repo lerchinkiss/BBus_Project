@@ -43,18 +43,17 @@
     .main-section {
       display: flex;
       justify-content: space-between;
-      flex-wrap: wrap;
+      align-items: flex-start;
+      flex-wrap: nowrap;
       gap: 20px;
     }
     .form-box, .preferences-box, .recommendations-box {
       border: 1px solid #ccc;
       padding: 20px;
-      width: 48%;
-      position: relative;
+      width: 32%;
       box-sizing: border-box;
-      margin-bottom: 20px;
-      opacity: 0;
       animation: fadeIn 0.8s ease forwards;
+      position: relative;
     }
     .form-box label {
       font-weight: 600;
@@ -64,7 +63,7 @@
     }
     .form-box input, .form-box select {
       display: block;
-      width: 100%;
+      width: calc(100% - 16px);
       padding: 8px;
       margin-bottom: 15px;
       font-size: 16px;
@@ -84,9 +83,7 @@
       cursor: pointer;
       font-weight: bold;
       font-family: 'Inter', sans-serif;
-      position: absolute;
-      right: 20px;
-      bottom: -50px;
+      margin-top: 10px;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .form-box button:hover {
@@ -131,12 +128,12 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 15px;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px 6px;
+      padding: 10px;
       text-align: center;
-      font-size: 15px;
       transition: background-color 0.3s ease;
     }
     tr:hover td {
@@ -152,7 +149,6 @@
       margin-top: -8px;
       margin-bottom: 8px;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -161,7 +157,7 @@
 </head>
 <body>
 <div class="top-bar">
-  <a href="docs/bbus_logo.png"><img src="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png" alt="BBUS Logo"></a>
+  <a href="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png"><img src="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png" alt="BBUS Logo"></a>
   <div>
     <div class="title">BBUS</div>
     <div class="subtitle">Режим менеджера</div>
@@ -218,7 +214,6 @@
           <th>Цена за час</th>
           <th>Тип заказа</th>
           <th>Статус</th>
-          <th>Маршрут</th>
         </tr>
       </thead>
       <tbody>
