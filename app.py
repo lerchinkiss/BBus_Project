@@ -82,9 +82,9 @@ def index():
 @app.route('/api/companies')
 def get_companies():
     try:
-        unique_companies = sorted(orders_df['Заказчик'].dropna().unique())
+        unique_companies = sorted(orders_df['Заказчик'].dropna().unique().tolist())
         print(f"Получен список компаний: {len(unique_companies)} компаний")
-        return jsonify(unique_companies.tolist())
+        return jsonify(unique_companies)
     except Exception as e:
         print(f"Ошибка при получении списка компаний: {str(e)}")
         return jsonify({'error': str(e)}), 500
