@@ -90,11 +90,11 @@ def get_customer_profile(company):
 @app.route('/api/history/<company>')
 def get_history(company):
     try:
-        history = orders_df[orders_df['Заказчик'] == company].sort_values(by='ДатаСоздания', ascending=False).head(3)
+        history = orders_df[orders_df['Заказчик'] == company].sort_values(by='Date', ascending=False).head(3)
         rows = []
         for _, row in history.iterrows():
             rows.append({
-                'дата': str(row.get('ДатаСоздания', '')),
+                'дата': str(row.get('Date', '')),
                 'тип_тс': row.get('ТипТС', ''),
                 'пассажиров': int(row.get('КоличествоПассажиров', 0)),
                 'цена': int(row.get('ЦенаЗаЧас', 0)),
