@@ -18,6 +18,9 @@
       display: flex;
       align-items: center;
       padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     .top-bar img {
       height: 50px;
@@ -42,19 +45,20 @@
     }
     .main-section {
       display: flex;
+      flex-direction: row;
       justify-content: space-between;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 20px;
+      align-items: flex-start;
     }
     .form-box, .preferences-box, .recommendations-box {
       border: 1px solid #ccc;
       padding: 20px;
-      width: 48%;
-      position: relative;
+      width: 32%;
       box-sizing: border-box;
-      margin-bottom: 20px;
       opacity: 0;
       animation: fadeIn 0.8s ease forwards;
+      min-height: 420px;
     }
     .form-box label {
       font-weight: 600;
