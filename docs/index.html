@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Анализ потребительских предпочтений | BBus</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -59,6 +60,8 @@
       opacity: 0;
       animation: fadeIn 0.8s ease forwards;
       min-height: 420px;
+      background-color: #fafafa;
+      border-radius: 6px;
     }
     .form-box label {
       font-weight: 600;
@@ -79,6 +82,7 @@
     .form-box input:focus, .form-box select:focus {
       border: 2px solid #800000;
       outline: none;
+      background-color: #fff7f7;
     }
     .form-box button {
       padding: 10px 20px;
@@ -88,11 +92,12 @@
       cursor: pointer;
       font-weight: bold;
       font-family: 'Inter', sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
+      transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
     }
     .form-box button:hover {
       background-color: #800000;
       color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
     .form-box .submit-area {
       display: flex;
@@ -158,12 +163,20 @@
     .section-title {
       font-weight: bold;
       margin-bottom: 10px;
+      border-left: 4px solid #800000;
+      padding-left: 8px;
     }
     .warning {
       color: red;
       font-size: 14px;
       margin-top: -8px;
       margin-bottom: 8px;
+    }
+    #loader {
+      display: none;
+      font-weight: bold;
+      color: #800000;
+      padding: 10px;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -221,7 +234,6 @@
         <p>Появятся после подбора...</p>
       </div>
     </div>
-
     <div class="table-box">
       <div class="section-title">История последних заказов клиента</div>
       <table>
