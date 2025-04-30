@@ -4,35 +4,163 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Анализ потребительских предпочтений | BBus</title>
-  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Advent Pro', sans-serif; margin: 0; background-color: white; }
-    .top-bar { background-color: #800000; color: white; display: flex; align-items: center; padding: 10px 20px; }
-    .top-bar img { height: 50px; margin-right: 15px; }
-    .top-bar .title { font-size: 24px; font-weight: bold; }
-    .subtitle { font-size: 12px; margin-top: 2px; }
-    .container { display: flex; flex-direction: column; padding: 20px; }
-    .main-section { display: flex; justify-content: space-between; }
-    .form-box, .preferences-box, .recommendations-box { border: 1px solid #ccc; padding: 20px; width: 48%; position: relative; box-sizing: border-box; margin-bottom: 20px; }
-    .form-box label { font-weight: 600; display: block; margin-top: 15px; margin-bottom: 8px; }
-    .form-box input, .form-box select { display: block; width: calc(100% - 16px); padding: 8px; margin-bottom: 15px; font-size: 16px; font-family: 'Advent Pro', sans-serif; box-sizing: border-box; }
-    .form-box select, .company-list input { background-repeat: no-repeat; background-position: right 8px center; background-size: 16px; }
-    .form-box button { padding: 10px 20px; color: #800000; border: 2px solid #800000; background-color: white; cursor: pointer; font-weight: bold; font-family: 'Advent Pro', sans-serif; position: absolute; right: 20px; bottom: -50px; }
-    #new-company-block { background-color: #fff8f8; border: 1px solid #ffcccc; border-radius: 4px; padding: 15px; margin-top: 15px; transition: all 0.3s ease; }
-    #new-company-block label { color: #800000; font-weight: bold; }
-    .company-suggestions { border: 1px solid #ccc; max-height: 220px; overflow-y: auto; background-color: white; position: absolute; z-index: 10; width: 100%; box-sizing: border-box; }
-    .company-suggestions div { padding: 6px 10px; cursor: pointer; }
-    .company-suggestions div:hover { background-color: rgba(128, 0, 0, 0.15); }
-    .table-box { margin-top: 30px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    .section-title { font-weight: bold; margin-bottom: 10px; }
-    .warning { color: red; font-size: 14px; margin-top: -8px; margin-bottom: 8px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 18px;
+      margin: 0;
+      background-color: white;
+    }
+    .top-bar {
+      background-color: #800000;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .top-bar img {
+      height: 50px;
+      margin-right: 15px;
+      transition: transform 0.3s ease;
+    }
+    .top-bar img:hover {
+      transform: scale(1.05);
+    }
+    .top-bar .title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .subtitle {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .main-section {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .form-box, .preferences-box, .recommendations-box {
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 48%;
+      position: relative;
+      box-sizing: border-box;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
+    .form-box label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+    .form-box input, .form-box select {
+      display: block;
+      width: calc(100% - 16px);
+      padding: 8px;
+      margin-bottom: 15px;
+      font-size: 18px;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+      transition: border 0.3s ease;
+    }
+    .form-box input:focus, .form-box select:focus {
+      border: 2px solid #800000;
+      outline: none;
+    }
+    .form-box button {
+      padding: 10px 20px;
+      color: #800000;
+      border: 2px solid #800000;
+      background-color: white;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: 'Inter', sans-serif;
+      position: absolute;
+      right: 20px;
+      bottom: -50px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .form-box button:hover {
+      background-color: #800000;
+      color: white;
+    }
+    #new-company-block {
+      background-color: #fff8f8;
+      border: 1px solid #ffcccc;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+    }
+    #new-company-block label {
+      color: #800000;
+      font-weight: bold;
+    }
+    .company-suggestions {
+      border: 1px solid #ccc;
+      max-height: 220px;
+      overflow-y: auto;
+      background-color: white;
+      position: absolute;
+      z-index: 10;
+      width: 100%;
+      box-sizing: border-box;
+      animation: fadeIn 0.3s ease;
+    }
+    .company-suggestions div {
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .company-suggestions div:hover {
+      background-color: rgba(128, 0, 0, 0.15);
+    }
+    .table-box {
+      margin-top: 30px;
+      animation: fadeIn 1s ease forwards;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+    tr:hover td {
+      background-color: #f8f8f8;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .warning {
+      color: red;
+      font-size: 14px;
+      margin-top: -8px;
+      margin-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
 <div class="top-bar">
-  <a href="docs/bbus_logo.png"><img src="docs/bbus_logo.png" alt="BBUS Logo"></a>
+  <a href="docs/bbus_logo.png"><img src="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png" alt="BBUS Logo"></a>
   <div>
     <div class="title">BBUS</div>
     <div class="subtitle">Режим менеджера</div>
@@ -44,7 +172,7 @@
       <div class="section-title">Оформление заявки подбором ТС</div>
       <label for="company-input">Название компании</label>
       <div class="company-list">
-        <input type="text" id="company-input" placeholder="Начните ввод..." oninput="filterCompanies()">
+        <input type="text" id="company-input" placeholder="Начните ввод..." oninput="filterCompanies()" onfocus="filterCompanies()">
         <div id="company-suggestions" class="company-suggestions" style="display: none;"></div>
       </div>
       <div id="new-company-block" style="display:none; margin-top:10px;">

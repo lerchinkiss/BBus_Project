@@ -1,4 +1,4 @@
-// === main.js ===
+// === main.js (обновлён) ===
 
 let knownCompanies = [];
 
@@ -9,10 +9,11 @@ fetch('https://bbus-project.onrender.com/api/companies')
   });
 
 function filterCompanies() {
-  const input = document.getElementById('company-input').value.toLowerCase();
+  const input = document.getElementById('company-input');
+  const value = input.value.toLowerCase();
   const suggestions = document.getElementById('company-suggestions');
   suggestions.innerHTML = '';
-  const filtered = knownCompanies.filter(name => name.toLowerCase().includes(input));
+  const filtered = knownCompanies.filter(name => name.toLowerCase().includes(value));
 
   (filtered.length ? filtered : knownCompanies.slice(0, 8)).forEach(company => {
     const div = document.createElement('div');
@@ -21,7 +22,7 @@ function filterCompanies() {
     suggestions.appendChild(div);
   });
 
-  if (input && !knownCompanies.some(name => name.toLowerCase() === input)) {
+  if (value && !knownCompanies.some(name => name.toLowerCase() === value)) {
     const div = document.createElement('div');
     div.textContent = 'Новый заказчик';
     div.style.fontWeight = 'bold';
@@ -29,11 +30,13 @@ function filterCompanies() {
     div.onclick = () => selectCompany('Новый заказчик');
     suggestions.appendChild(div);
   }
+
   suggestions.style.display = 'block';
 }
 
 function selectCompany(name) {
-  document.getElementById('company-input').value = name;
+  const input = document.getElementById('company-input');
+  input.value = name;
   document.getElementById('company-suggestions').style.display = 'none';
 
   const preferencesBox = document.querySelector('.preferences-box');
@@ -122,3 +125,5 @@ document.getElementById('submit-button').onclick = function(e) {
       box.innerHTML = html;
     });
 };
+
+document.getElementById('company-input').addEventListener('focus', filterCompanies);
