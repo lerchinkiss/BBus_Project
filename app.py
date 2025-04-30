@@ -29,7 +29,9 @@ def load_from_cache():
 # === Загрузка модели ===
 print("Загрузка модели...")
 model = CatBoostClassifier()
-model.load_model(os.path.join("models", "catboost_typets_model_v3.cbm"))
+model_path = os.path.abspath("models/catboost_typets_model_v3.cbm")
+print("Загружаем модель из:", model_path)
+model.load_model(model_path)
 
 # === Загрузка данных ===
 def load_data():
