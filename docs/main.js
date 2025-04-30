@@ -19,6 +19,20 @@ document.addEventListener('click', e => {
   }
 });
 
+document.getElementById('price').addEventListener('input', updateTotalPrice);
+document.getElementById('hours').addEventListener('input', updateTotalPrice);
+
+function updateTotalPrice() {
+  const price = parseFloat(document.getElementById('price').value);
+  const hours = parseFloat(document.getElementById('hours').value);
+  const summary = document.getElementById('price-summary');
+  if (!isNaN(price) && !isNaN(hours)) {
+    summary.textContent = `К оплате: ${Math.round(price * hours)} руб.`;
+  } else {
+    summary.textContent = 'К оплате: —';
+  }
+}
+
 function filterCompanies() {
   const value = input.value.toLowerCase();
   const filtered = knownCompanies.filter(name => name.toLowerCase().includes(value));

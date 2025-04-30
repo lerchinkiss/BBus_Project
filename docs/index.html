@@ -8,9 +8,9 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      font-size: 16px;
+      font-size: 18px;
       margin: 0;
-      background-color: #f3f3f3;
+      background-color: white;
     }
     .top-bar {
       background-color: #800000;
@@ -18,9 +18,6 @@
       display: flex;
       align-items: center;
       padding: 10px 20px;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
     }
     .top-bar img {
       height: 50px;
@@ -46,16 +43,16 @@
     .main-section {
       display: flex;
       justify-content: space-between;
+      flex-wrap: wrap;
       gap: 20px;
     }
     .form-box, .preferences-box, .recommendations-box {
       border: 1px solid #ccc;
       padding: 20px;
-      border-radius: 8px;
-      background-color: white;
-      width: 32%;
+      width: 48%;
+      position: relative;
       box-sizing: border-box;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
       opacity: 0;
       animation: fadeIn 0.8s ease forwards;
     }
@@ -67,10 +64,10 @@
     }
     .form-box input, .form-box select {
       display: block;
-      width: 100%;
+      width: calc(100% - 16px);
       padding: 8px;
       margin-bottom: 15px;
-      font-size: 16px;
+      font-size: 18px;
       font-family: 'Inter', sans-serif;
       box-sizing: border-box;
       transition: border 0.3s ease;
@@ -93,6 +90,17 @@
       background-color: #800000;
       color: white;
     }
+    .form-box .submit-area {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .price-summary {
+      font-weight: bold;
+      color: #333;
+    }
     #new-company-block {
       background-color: #fff8f8;
       border: 1px solid #ffcccc;
@@ -105,12 +113,9 @@
       color: #800000;
       font-weight: bold;
     }
-    .company-list {
-      position: relative;
-    }
     .company-suggestions {
       border: 1px solid #ccc;
-      max-height: 180px;
+      max-height: 220px;
       overflow-y: auto;
       background-color: white;
       position: absolute;
@@ -118,8 +123,8 @@
       width: 100%;
       box-sizing: border-box;
       animation: fadeIn 0.3s ease;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 6px;
     }
     .company-suggestions div {
       padding: 6px 10px;
@@ -136,11 +141,10 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 10px;
       text-align: center;
       transition: background-color 0.3s ease;
     }
@@ -157,7 +161,6 @@
       margin-top: -8px;
       margin-bottom: 8px;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -165,73 +168,76 @@
   </style>
 </head>
 <body>
-<div class="top-bar">
-  <a href="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png"><img src="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png" alt="BBUS Logo"></a>
-  <div>
-    <div class="title">BBUS</div>
-    <div class="subtitle">Режим менеджера</div>
+  <div class="top-bar">
+    <a href="docs/bbus_logo.png"><img src="https://lerchinkiss.github.io/BBus_Project/docs/bbus_logo.png" alt="BBUS Logo"></a>
+    <div>
+      <div class="title">BBUS</div>
+      <div class="subtitle">Режим менеджера</div>
+    </div>
   </div>
-</div>
-<div class="container">
-  <div class="main-section">
-    <div class="form-box">
-      <div class="section-title">Оформление заявки подбором ТС</div>
-      <label for="company-input">Название компании</label>
-      <div class="company-list">
-        <input type="text" id="company-input" placeholder="Начните ввод..." oninput="filterCompanies()" onfocus="filterCompanies()">
-        <div id="company-suggestions" class="company-suggestions" style="display: none;"></div>
+  <div class="container">
+    <div class="main-section">
+      <div class="form-box">
+        <div class="section-title">Оформление заявки подбором ТС</div>
+        <label for="company-input">Название компании</label>
+        <div class="company-list">
+          <input type="text" id="company-input" placeholder="Начните ввод...">
+          <div id="company-suggestions" class="company-suggestions" style="display: none;"></div>
+        </div>
+        <div id="new-company-block" style="display:none; margin-top:10px;">
+          <label for="new-company-name">Введите название новой компании</label>
+          <input type="text" id="new-company-name" placeholder="ООО ПиФМ">
+        </div>
+        <label for="passengers">Количество пассажиров (максимум 59)</label>
+        <input type="number" id="passengers" placeholder="Введите число" max="59" onblur="validatePassengers(this)">
+        <div id="passenger-warning" class="warning" style="display: none;">Введите значение от 1 до 59</div>
+        <label for="price">Стоимость за час аренды (руб.)</label>
+        <input type="number" id="price" placeholder="Введите число">
+        <label for="hours">Количество часов аренды</label>
+        <input type="number" id="hours" placeholder="Введите число">
+        <label for="status">Статус заказа</label>
+        <select id="status">
+          <option>Стандарт</option>
+          <option>Свадьба</option>
+          <option>Дети</option>
+        </select>
+        <div class="submit-area">
+          <button id="submit-button">Подобрать</button>
+          <div class="price-summary" id="price-summary">К оплате: —</div>
+        </div>
       </div>
-      <div id="new-company-block" style="display:none; margin-top:10px;">
-        <label for="new-company-name">Введите название новой компании</label>
-        <input type="text" id="new-company-name" placeholder="ООО ПиФМ">
+
+      <div class="preferences-box">
+        <div class="section-title">Предпочтения клиента</div>
+        <p>Появятся после подбора транспорта...</p>
       </div>
-      <label for="passengers">Количество пассажиров (максимум 59)</label>
-      <input type="number" id="passengers" placeholder="Введите число" max="59" onblur="validatePassengers(this)">
-      <div id="passenger-warning" class="warning" style="display: none;">Введите значение от 1 до 59</div>
-      <label for="price">Стоимость за час аренды (руб.)</label>
-      <input type="number" id="price" placeholder="Введите число">
-      <label for="hours">Количество часов аренды</label>
-      <input type="number" id="hours" placeholder="Введите число">
-      <label for="status">Статус заказа</label>
-      <select id="status">
-        <option>Стандарт</option>
-        <option>Свадьба</option>
-        <option>Дети</option>
-      </select>
-      <button id="submit-button">Подобрать</button>
+
+      <div class="recommendations-box">
+        <div class="section-title">Рекомендованные типы ТС</div>
+        <p>Появятся после подбора...</p>
+      </div>
     </div>
 
-    <div class="preferences-box">
-      <div class="section-title">Предпочтения клиента</div>
-      <p>Появятся после подбора транспорта...</p>
-    </div>
-
-    <div class="recommendations-box">
-      <div class="section-title">Рекомендованные типы ТС</div>
-      <p>Появятся после подбора...</p>
+    <div class="table-box">
+      <div class="section-title">История последних заказов клиента</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Тип ТС</th>
+            <th>Кол-во пассажиров</th>
+            <th>Цена за час</th>
+            <th>Тип заказа</th>
+            <th>Статус</th>
+            <th>Маршрут</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7">(будет заполнено при выборе клиента)</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
-
-  <div class="table-box">
-    <div class="section-title">История последних заказов клиента</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Дата</th>
-          <th>Тип ТС</th>
-          <th>Кол-во пассажиров</th>
-          <th>Цена за час</th>
-          <th>Тип заказа</th>
-          <th>Статус</th>
-          <th>Маршрут</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="7">(будет заполнено при выборе клиента)</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-<script src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
