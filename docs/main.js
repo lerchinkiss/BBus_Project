@@ -1,4 +1,4 @@
-// === main.js (обновлён) ===
+// === main.js (обновлён и улучшен) ===
 
 let knownCompanies = [];
 
@@ -7,6 +7,18 @@ fetch('https://bbus-project.onrender.com/api/companies')
   .then(companies => {
     knownCompanies = companies;
   });
+
+function showCompanySuggestions() {
+  const suggestions = document.getElementById('company-suggestions');
+  suggestions.innerHTML = '';
+  knownCompanies.slice(0, 8).forEach(company => {
+    const div = document.createElement('div');
+    div.textContent = company;
+    div.onclick = () => selectCompany(company);
+    suggestions.appendChild(div);
+  });
+  suggestions.style.display = 'block';
+}
 
 function filterCompanies() {
   const input = document.getElementById('company-input');
@@ -126,4 +138,11 @@ document.getElementById('submit-button').onclick = function(e) {
     });
 };
 
-document.getElementById('company-input').addEventListener('focus', filterCompanies);
+document.getElementById('company-input').addEventListener('focus', showCompanySuggestions);
+document.addEventListener('click', function(e) {
+  const suggestions = document.getElementById('company-suggestions');
+  const input = document.getElementById('company-input');
+  if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+    suggestions.style.display = 'none';
+  }
+});

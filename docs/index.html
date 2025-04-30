@@ -10,7 +10,7 @@
       font-family: 'Inter', sans-serif;
       font-size: 16px;
       margin: 0;
-      background-color: #fff;
+      background-color: #f3f3f3;
     }
     .top-bar {
       background-color: #800000;
@@ -47,25 +47,17 @@
       display: flex;
       justify-content: space-between;
       gap: 20px;
-      align-items: flex-start;
-      flex-wrap: wrap;
     }
     .form-box, .preferences-box, .recommendations-box {
       border: 1px solid #ccc;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      background-color: #f9f9f9;
-      flex: 1 1 30%;
+      background-color: white;
+      width: 32%;
       box-sizing: border-box;
-      min-width: 280px;
-      transition: all 0.3s ease;
-    }
-    .form-box {
-      max-width: 32%;
-    }
-    .preferences-box, .recommendations-box {
-      max-width: 32%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
     }
     .form-box label {
       font-weight: 600;
@@ -74,18 +66,17 @@
       margin-bottom: 8px;
     }
     .form-box input, .form-box select {
+      display: block;
       width: 100%;
       padding: 8px;
       margin-bottom: 15px;
       font-size: 16px;
       font-family: 'Inter', sans-serif;
       box-sizing: border-box;
-      border-radius: 4px;
-      border: 1px solid #ccc;
       transition: border 0.3s ease;
     }
     .form-box input:focus, .form-box select:focus {
-      border-color: #800000;
+      border: 2px solid #800000;
       outline: none;
     }
     .form-box button {
@@ -96,7 +87,6 @@
       cursor: pointer;
       font-weight: bold;
       font-family: 'Inter', sans-serif;
-      border-radius: 6px;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
     .form-box button:hover {
@@ -109,39 +99,44 @@
       border-radius: 4px;
       padding: 15px;
       margin-top: 15px;
+      transition: all 0.3s ease;
     }
     #new-company-block label {
       color: #800000;
       font-weight: bold;
     }
+    .company-list {
+      position: relative;
+    }
     .company-suggestions {
       border: 1px solid #ccc;
-      max-height: 220px;
+      max-height: 180px;
       overflow-y: auto;
       background-color: white;
       position: absolute;
       z-index: 10;
       width: 100%;
       box-sizing: border-box;
+      animation: fadeIn 0.3s ease;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     .company-suggestions div {
       padding: 6px 10px;
       cursor: pointer;
+      transition: background-color 0.2s ease;
     }
     .company-suggestions div:hover {
       background-color: rgba(128, 0, 0, 0.15);
     }
     .table-box {
       margin-top: 30px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background-color: #f3f3f3;
-      padding: 10px;
-      overflow-x: auto;
+      animation: fadeIn 1s ease forwards;
     }
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 14px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -150,7 +145,7 @@
       transition: background-color 0.3s ease;
     }
     tr:hover td {
-      background-color: #f1f1f1;
+      background-color: #f8f8f8;
     }
     .section-title {
       font-weight: bold;
@@ -161,6 +156,11 @@
       font-size: 14px;
       margin-top: -8px;
       margin-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
