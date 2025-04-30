@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 import pandas as pd
 import os
 from catboost import CatBoostClassifier, Pool
@@ -7,6 +8,7 @@ import pickle
 import time
 
 app = Flask(__name__, static_folder='site')
+CORS(app)
 
 CACHE_FILE = 'data_cache.pkl'
 CACHE_TIMEOUT = 3600  # 1 час
@@ -36,8 +38,6 @@ model.load_model(model_path)
 # === Загрузка данных ===
 def load_data():
     print("Начинаем загрузку данных...")
-    
-    # Пробуем загрузить из кэша
     cached_data = load_from_cache()
     if cached_data is not None:
         print("Данные загружены из кэша")
@@ -47,23 +47,23 @@ def load_data():
         print("Загружаем orders_df...")
         orders_df = pd.read_excel(os.path.join("filtered_datasets", "bbOrders_filtered.xlsx"))
         print(f"Загружено {len(orders_df)} заказов")
-        
+
         print("Применяем связи...")
         orders_df = apply_links(orders_df)
         print("Связи применены")
-        
+
         print("Загружаем customer_profile...")
         customer_profile = pd.read_excel(os.path.join("prepared_data", "customer_profile.xlsx"))
         print(f"Загружено {len(customer_profile)} профилей клиентов")
-        
+
         print("Загружаем type_ts_df...")
         type_ts_df = pd.read_excel(os.path.join("filtered_datasets", "uatTypeTS_filtered.xlsx"))
         print(f"Загружено {len(type_ts_df)} типов ТС")
-        
+
         type_ts_df = type_ts_df.dropna(subset=['Description', 'МаксМест'])
         type_ts_mapping = dict(zip(type_ts_df['Description'], type_ts_df['МаксМест']))
         print(f"Создан mapping для {len(type_ts_mapping)} типов ТС")
-        
+
         data = (orders_df, customer_profile, type_ts_mapping)
         save_to_cache(data)
         return data
@@ -95,7 +95,7 @@ def get_customer_profile(company):
     try:
         print(f"Запрошен профиль для компании: {company}")
         profile_row = customer_profile[customer_profile['Заказчик'] == company]
-        
+
         if not profile_row.empty:
             profile = {
                 'любимый_тип_тс': profile_row['ЛюбимыйТипТС'].values[0],
@@ -129,7 +129,7 @@ def recommend():
     try:
         data = request.json
         print(f"Получены данные для рекомендации: {data}")
-        
+
         заказчик = data['company']
         количество_пассажиров = int(data['passengers'])
         цена_за_час = int(data['price'])
@@ -168,7 +168,7 @@ def recommend():
 
         min_capacity, max_capacity = define_range(количество_пассажиров)
         print(f"Диапазон вместимости: {min_capacity}-{max_capacity}")
-        
+
         recommendations = []
 
         print("Формируем рекомендации")
@@ -191,10 +191,10 @@ def recommend():
 
         print("Ищем исторические совпадения")
         historical_matches = orders_df[
-            (orders_df['КоличествоПассажиров'] >= min_capacity) & 
+            (orders_df['КоличествоПассажиров'] >= min_capacity) &
             (orders_df['КоличествоПассажиров'] <= max_capacity)
         ]
-        
+
         if not historical_matches.empty:
             top_historical = historical_matches['ТипТС'].value_counts().head(3).index.tolist()
             for ref in top_historical:
