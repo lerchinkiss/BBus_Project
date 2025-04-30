@@ -100,7 +100,7 @@ def get_history(company):
                 'цена': int(row.get('ЦенаЗаЧас', 0)),
                 'тип': row.get('ТипЗаказа', ''),
                 'статус': row.get('СтатусЗаказа', ''),
-                'маршрут': f"{row.get('ПунктЗагрузки', '')} → {row.get('ПунктРазгрузки', '')}"
+                'маршрут': f"{row.get('ЗагрузкаПункт', '')} → {row.get('РазгрузкаПункт', '')}"
             })
         return jsonify(rows)
     except Exception as e:
