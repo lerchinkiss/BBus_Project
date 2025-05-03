@@ -3,7 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 import os
 from catboost import CatBoostClassifier, Pool
-from app.link_tables import apply_links
+from app_utils.link_tables import apply_links
 import pickle
 import time
 
