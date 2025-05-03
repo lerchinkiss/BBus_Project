@@ -134,7 +134,7 @@ function updatePriceHint() {
     .then(response => response.json())
     .then(data => {
       if (data.min !== null && data.max !== null) {
-        hintElement.textContent = `💬 Подсказка: от ${data.min} до ${data.max} руб.`;
+        hintElement.textContent = `Подсказка: от ${data.min} до ${data.max} руб.`;
       } else {
         hintElement.textContent = '';
       }

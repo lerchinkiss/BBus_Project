@@ -7,7 +7,7 @@ from app.link_tables import apply_links
 import pickle
 import time
 
-app = Flask(__name__, static_folder='site')
+app = Flask(__name__, static_folder='docs')
 CORS(app)
 
 # Определяем абсолютные пути
@@ -62,7 +62,7 @@ orders_df, customer_profile, type_ts_mapping = load_data()
 
 @app.route('/')
 def index():
-    return send_from_directory('site', 'index.html')
+    return send_from_directory('docs', 'index.html')
 
 @app.route('/api/companies')
 def get_companies():
