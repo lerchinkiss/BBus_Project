@@ -1,10 +1,10 @@
 import pandas as pd
 import os
-from link_tables import apply_links
+from app.link_tables import apply_links
 
 # === Шаг 1: Загрузка данных ===
 print("\nЗагрузка данных...")
-df = pd.read_excel(os.path.join("filtered_datasets", "bbOrders_filtered.xlsx"))
+df = pd.read_excel(os.path.join("../data/filtered_datasets", "bbOrders_filtered.xlsx"))
 
 # Применяем раскодировку
 print("Применение раскодировок...")
@@ -37,7 +37,7 @@ print(customer_profile.head())
 
 # === Шаг 3: Сохранение профиля ===
 print("\nСохранение профиля заказчиков...")
-os.makedirs("prepared_data", exist_ok=True)
-customer_profile.to_excel(os.path.join("prepared_data", "customer_profile.xlsx"), index=False)
+os.makedirs("../data/prepared_data", exist_ok=True)
+customer_profile.to_excel(os.path.join("../data/prepared_data", "customer_profile.xlsx"), index=False)
 
 print("\nПрофиль заказчиков сохранён в prepared_data/customer_profile.xlsx")

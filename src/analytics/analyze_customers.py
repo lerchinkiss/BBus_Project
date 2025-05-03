@@ -2,7 +2,7 @@ import sys
 import os
 
 # Добавляем путь к корню проекта (где link_tables.py)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ import seaborn as sns
 from app.link_tables import apply_links
 
 # === Загрузка данных ===
-df_path = os.path.join("..", "filtered_datasets", "bbOrders_filtered.xlsx")
+df_path = os.path.join("../..", "filtered_datasets", "bbOrders_filtered.xlsx")
 df = pd.read_excel(df_path)
 df = apply_links(df)
 
@@ -74,5 +74,5 @@ print("\n📋 Пример сводки профиля клиента:")
 print(profiles.head(3))
 
 # === Сохранение профилей (если нужно) ===
-os.makedirs("../bbrecommend/bbrecommend", exist_ok=True)
+os.makedirs("../../bbrecommend/bbrecommend", exist_ok=True)
 profiles.to_excel("bbrecommend/customer_profiles.xlsx", index=False)

@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 from app.link_tables import apply_links
 
 # Загрузка и подготовка
-df = pd.read_excel(os.path.join("../data/filtered_datasets", "bbOrders_filtered.xlsx"))
+df = pd.read_excel(os.path.join("../../data/filtered_datasets", "bbOrders_filtered.xlsx"))
 df = apply_links(df)
 
 # Очистка и преобразование

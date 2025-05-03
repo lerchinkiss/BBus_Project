@@ -1,17 +1,12 @@
 // === main.js ===
 
 let knownCompanies = [];
-let priceHints = {};
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
   .then(companies => {
     knownCompanies = companies;
   });
-
-fetch('https://bbus-project.onrender.com/api/price_hints')
-  .then(response => response.json())
-  .then(data => { priceHints = data; });
 
 const input = document.getElementById('company-input');
 const suggestions = document.getElementById('company-suggestions');
@@ -135,20 +130,15 @@ function updatePriceHint() {
     return;
   }
 
-  let matched = null;
-  for (const range of Object.keys(priceHints)) {
-    const [min, max] = range.split('-').map(Number);
-    if (passengers >= min && passengers <= max) {
-      matched = priceHints[range];
-      break;
-    }
-  }
-
-  if (matched) {
-    hintElement.textContent = `💬 Подсказка: от ${matched.min} до ${matched.max} руб.`;
-  } else {
-    hintElement.textContent = '';
-  }
+  fetch(`https://bbus-project.onrender.com/api/price-hint/${passengers}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.min !== null && data.max !== null) {
+        hintElement.textContent = `💬 Подсказка: от ${data.min} до ${data.max} руб.`;
+      } else {
+        hintElement.textContent = '';
+      }
+    });
 }
 
 document.getElementById('submit-button').onclick = function(e) {

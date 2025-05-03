@@ -10,10 +10,13 @@ import time
 app = Flask(__name__, static_folder='site')
 CORS(app)
 
-CACHE_FILE = 'outputs/data_cache.pkl'
+# Определяем абсолютные пути
+BASE_DIR = os.path.dirname(__file__)
+CACHE_FILE = os.path.join(BASE_DIR, 'outputs/data_cache.pkl')
 CACHE_TIMEOUT = 3600
 
 def save_to_cache(data):
+    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
     with open(CACHE_FILE, 'wb') as f:
         pickle.dump({'timestamp': time.time(), 'data': data}, f)
 

@@ -5,11 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib
-from link_tables import apply_links
+from app.link_tables import apply_links
 
 # === Загрузка данных ===
-df = pd.read_excel(os.path.join("filtered_datasets", "bbOrders_filtered.xlsx"))
+df = pd.read_excel(os.path.join("../data/filtered_datasets", "bbOrders_filtered.xlsx"))
 df = apply_links(df)
 
 # Выбор признаков

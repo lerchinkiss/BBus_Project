@@ -10,7 +10,7 @@ sys.path.append(BASE_DIR)
 from app.link_tables import apply_links
 
 # Пути к данным
-ORDERS_PATH = os.path.join(BASE_DIR, "../data/filtered_datasets", "bbOrders_filtered.xlsx")
+ORDERS_PATH = os.path.join(BASE_DIR, "../../data/filtered_datasets", "bbOrders_filtered.xlsx")
 
 # Загрузка и обработка данных
 df = pd.read_excel(ORDERS_PATH)

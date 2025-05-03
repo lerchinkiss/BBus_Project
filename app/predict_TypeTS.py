@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
@@ -10,9 +9,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
-from link_tables import apply_links
+from app.link_tables import apply_links
 
-df = pd.read_excel(os.path.join("filtered_datasets", "bbOrders_filtered.xlsx"))
+df = pd.read_excel(os.path.join("../data/filtered_datasets", "bbOrders_filtered.xlsx"))
 df = apply_links(df)
 
 columns = [
@@ -60,8 +59,8 @@ y_pred_rf = rf.predict(X_test_top)
 print("Accuracy:", accuracy_score(y_test, y_pred_rf))
 print("\nClassification Report:\n", classification_report(y_test, y_pred_rf))
 
-joblib.dump(rf, 'models/model_typeTS.pkl')
-joblib.dump(encoders, 'models/encoders.pkl')
+joblib.dump(rf, '../outputs/models/model_typeTS.pkl')
+joblib.dump(encoders, '../outputs/models/encoders.pkl')
 
 plt.figure(figsize=(10, 6))
 sns.barplot(x=importances.head(10).values, y=importances.head(10).index)

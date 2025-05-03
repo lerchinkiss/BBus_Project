@@ -1,10 +1,10 @@
 import os
 import pandas as pd
 
-# Текущий путь до этого файла
-BASE_DIR = os.path.dirname(__file__)
-filtered_path = os.path.join(BASE_DIR, 'filtered_datasets')
-raw_path = os.path.join(BASE_DIR, 'datasets')
+# Текущий путь до корневой директории проекта
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+filtered_path = os.path.join(BASE_DIR, "data/filtered_datasets")
+raw_path = os.path.join(BASE_DIR, "data/datasets")
 
 # Загружаем основной датафрейм
 orders_path = os.path.join(filtered_path, 'bbOrders_filtered.xlsx')
