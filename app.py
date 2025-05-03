@@ -188,29 +188,27 @@ def recommend():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/price-hint/<int:passengers>')
-def price_hint(passengers):
+@app.route('/api/price-hints')
+def price_hints():
     try:
-        def define_range(p):
-            if p <= 4: return (1, 4)
-            elif p <= 8: return (5, 8)
-            elif p <= 20: return (9, 20)
-            elif p <= 50: return (21, 50)
-            else: return (51, 100)
+        ranges = [
+            (1, 4), (5, 8), (9, 20), (21, 50), (51, 100)
+        ]
 
-        min_cap, max_cap = define_range(passengers)
+        result = []
 
-        valid_types = [typ for typ, cap in type_ts_mapping.items() if min_cap <= cap <= max_cap]
+        for min_cap, max_cap in ranges:
+            types_in_range = [t for t, c in type_ts_mapping.items() if min_cap <= c <= max_cap]
+            filtered = orders_df[orders_df['ТипТС'].isin(types_in_range) & orders_df['ЦенаЗаЧас'].notna()]
 
-        filtered = orders_df[orders_df['ТипТС'].isin(valid_types) & orders_df['ЦенаЗаЧас'].notna()]
+            if not filtered.empty:
+                result.append({
+                    'range': f'{min_cap}-{max_cap}',
+                    'min': int(filtered['ЦенаЗаЧас'].min()),
+                    'max': int(filtered['ЦенаЗаЧас'].max())
+                })
 
-        if filtered.empty:
-            return jsonify({'min': None, 'max': None})
-
-        return jsonify({
-            'min': int(filtered['ЦенаЗаЧас'].min()),
-            'max': int(filtered['ЦенаЗаЧас'].max())
-        })
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

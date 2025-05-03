@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Анализ потребительских предпочтений | BBus</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -178,6 +178,21 @@
       color: #800000;
       padding: 10px;
     }
+    .price-hint-table {
+      margin-top: 30px;
+      animation: fadeIn 1s ease forwards;
+    }
+    .price-hint-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      margin-top: 10px;
+    }
+    .price-hint-table th, .price-hint-table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -192,6 +207,7 @@
       <div class="subtitle">Режим менеджера</div>
     </div>
   </div>
+
   <div class="container">
     <div class="main-section">
       <div class="form-box">
@@ -201,27 +217,49 @@
           <input type="text" id="company-input" placeholder="Начните ввод...">
           <div id="company-suggestions" class="company-suggestions" style="display: none;"></div>
         </div>
+
         <div id="new-company-block" style="display:none; margin-top:10px;">
           <label for="new-company-name">Введите название новой компании</label>
           <input type="text" id="new-company-name" placeholder="ООО ПиФМ">
         </div>
+
         <label for="passengers">Количество пассажиров (максимум 59)</label>
         <input type="number" id="passengers" placeholder="Введите число" max="59" onblur="validatePassengers(this)">
         <div id="passenger-warning" class="warning" style="display: none;">Введите значение от 1 до 59</div>
+
         <label for="price">Стоимость за час аренды (руб.)</label>
         <input type="number" id="price" placeholder="Введите число">
-        <div id="price-hint" style="font-size: 14px; color: #666; margin-top: -10px; margin-bottom: 10px;"></div>
+
         <label for="hours">Количество часов аренды</label>
         <input type="number" id="hours" placeholder="Введите число">
+
         <label for="status">Статус заказа</label>
         <select id="status">
           <option>Стандарт</option>
           <option>Свадьба</option>
           <option>Дети</option>
         </select>
+
         <div class="submit-area">
           <button id="submit-button">Подобрать</button>
           <div class="price-summary" id="price-summary">К оплате: —</div>
+        </div>
+
+        <!-- Подсказка по диапазонам цен -->
+        <div class="price-hint-table" id="price-hint-table" style="display: none;">
+          <div class="section-title">💬 Диапазоны стоимости за час по вместимости</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Диапазон мест</th>
+                <th>Мин. цена (руб.)</th>
+                <th>Макс. цена (руб.)</th>
+              </tr>
+            </thead>
+            <tbody id="price-hint-body">
+              <!-- динамически заполняется -->
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -235,6 +273,7 @@
         <p>Появятся после подбора...</p>
       </div>
     </div>
+
     <div class="table-box">
       <div class="section-title">История последних заказов клиента</div>
       <table>
@@ -255,6 +294,7 @@
       </table>
     </div>
   </div>
+
   <script src="main.js"></script>
 </body>
 </html>

@@ -1,11 +1,19 @@
 // === main.js ===
 
 let knownCompanies = [];
+let priceHintsRaw = [];
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
   .then(companies => {
     knownCompanies = companies;
+  });
+
+fetch('https://bbus-project.onrender.com/api/price-hints')
+  .then(response => response.json())
+  .then(data => {
+    priceHintsRaw = data;
+    renderPriceHintTable();
   });
 
 const input = document.getElementById('company-input');
@@ -119,26 +127,19 @@ function selectCompany(name) {
 function validatePassengers(input) {
   const warning = document.getElementById('passenger-warning');
   warning.style.display = (input.value < 1 || input.value > 59) ? 'block' : 'none';
-  updatePriceHint();
 }
 
-function updatePriceHint() {
-  const hintElement = document.getElementById('price-hint');
-  const passengers = parseInt(document.getElementById('passengers').value);
-  if (isNaN(passengers)) {
-    hintElement.textContent = '';
-    return;
-  }
-
-  fetch(`https://bbus-project.onrender.com/api/price-hint/${passengers}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.min !== null && data.max !== null) {
-        hintElement.textContent = `Подсказка: от ${data.min} до ${data.max} руб.`;
-      } else {
-        hintElement.textContent = '';
-      }
-    });
+function renderPriceHintTable() {
+  const table = document.getElementById('price-hint-table');
+  const body = document.getElementById('price-hint-body');
+  body.innerHTML = '';
+  if (!Array.isArray(priceHintsRaw)) return;
+  priceHintsRaw.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.range}</td><td>${row.min}</td><td>${row.max}</td>`;
+    body.appendChild(tr);
+  });
+  table.style.display = 'block';
 }
 
 document.getElementById('submit-button').onclick = function(e) {
