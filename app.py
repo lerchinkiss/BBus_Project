@@ -10,7 +10,6 @@ import time
 app = Flask(__name__, static_folder='docs')
 CORS(app)
 
-# Определяем абсолютные пути
 BASE_DIR = os.path.dirname(__file__)
 CACHE_FILE = os.path.join(BASE_DIR, 'outputs/data_cache.pkl')
 CACHE_TIMEOUT = 3600
