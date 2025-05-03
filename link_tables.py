@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 # Текущий путь до корневой директории проекта
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(__file__)
 filtered_path = os.path.join(BASE_DIR, "data/filtered_datasets")
 raw_path = os.path.join(BASE_DIR, "data/datasets")
 
