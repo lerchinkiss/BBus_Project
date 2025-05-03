@@ -1,12 +1,17 @@
 // === main.js ===
 
 let knownCompanies = [];
+let priceHints = {};
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
   .then(companies => {
     knownCompanies = companies;
   });
+
+fetch('https://bbus-project.onrender.com/api/price_hints')
+  .then(response => response.json())
+  .then(data => { priceHints = data; });
 
 const input = document.getElementById('company-input');
 const suggestions = document.getElementById('company-suggestions');
@@ -21,6 +26,9 @@ document.addEventListener('click', e => {
 
 document.getElementById('price').addEventListener('input', updateTotalPrice);
 document.getElementById('hours').addEventListener('input', updateTotalPrice);
+document.getElementById('passengers').addEventListener('input', () => {
+  validatePassengers(document.getElementById('passengers'));
+});
 
 function updateTotalPrice() {
   const price = parseFloat(document.getElementById('price').value);
@@ -116,6 +124,31 @@ function selectCompany(name) {
 function validatePassengers(input) {
   const warning = document.getElementById('passenger-warning');
   warning.style.display = (input.value < 1 || input.value > 59) ? 'block' : 'none';
+  updatePriceHint();
+}
+
+function updatePriceHint() {
+  const hintElement = document.getElementById('price-hint');
+  const passengers = parseInt(document.getElementById('passengers').value);
+  if (isNaN(passengers)) {
+    hintElement.textContent = '';
+    return;
+  }
+
+  let matched = null;
+  for (const range of Object.keys(priceHints)) {
+    const [min, max] = range.split('-').map(Number);
+    if (passengers >= min && passengers <= max) {
+      matched = priceHints[range];
+      break;
+    }
+  }
+
+  if (matched) {
+    hintElement.textContent = `💬 Подсказка: от ${matched.min} до ${matched.max} руб.`;
+  } else {
+    hintElement.textContent = '';
+  }
 }
 
 document.getElementById('submit-button').onclick = function(e) {

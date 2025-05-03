@@ -3,14 +3,14 @@ from flask_cors import CORS
 import pandas as pd
 import os
 from catboost import CatBoostClassifier, Pool
-from link_tables import apply_links
+from app.link_tables import apply_links
 import pickle
 import time
 
 app = Flask(__name__, static_folder='site')
 CORS(app)
 
-CACHE_FILE = 'data_cache.pkl'
+CACHE_FILE = 'outputs/data_cache.pkl'
 CACHE_TIMEOUT = 3600
 
 def save_to_cache(data):
@@ -30,7 +30,7 @@ def load_from_cache():
 
 print("Загрузка модели...")
 model = CatBoostClassifier()
-model_path = os.path.abspath("models/catboost_typets_model_v3.cbm")
+model_path = os.path.abspath("outputs/models/catboost_typets_model_v3.cbm")
 print("Загружаем модель из:", model_path)
 model.load_model(model_path)
 
@@ -42,10 +42,10 @@ def load_data():
         return cached_data
 
     try:
-        orders_df = pd.read_excel(os.path.join("filtered_datasets", "bbOrders_filtered.xlsx"))
+        orders_df = pd.read_excel(os.path.join("data/filtered_datasets", "bbOrders_filtered.xlsx"))
         orders_df = apply_links(orders_df)
-        customer_profile = pd.read_excel(os.path.join("prepared_data", "customer_profile.xlsx"))
-        type_ts_df = pd.read_excel(os.path.join("filtered_datasets", "uatTypeTS_filtered.xlsx"))
+        customer_profile = pd.read_excel(os.path.join("data/prepared_data", "customer_profile.xlsx"))
+        type_ts_df = pd.read_excel(os.path.join("data/filtered_datasets", "uatTypeTS_filtered.xlsx"))
         type_ts_df = type_ts_df.dropna(subset=['Description', 'МаксМест'])
         type_ts_mapping = dict(zip(type_ts_df['Description'], type_ts_df['МаксМест']))
         data = (orders_df, customer_profile, type_ts_mapping)
@@ -182,6 +182,32 @@ def recommend():
                         break
 
         return jsonify(recommendations)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/price-hint/<int:passengers>')
+def price_hint(passengers):
+    try:
+        def define_range(p):
+            if p <= 4: return (1, 4)
+            elif p <= 8: return (5, 8)
+            elif p <= 20: return (9, 20)
+            elif p <= 50: return (21, 50)
+            else: return (51, 100)
+
+        min_cap, max_cap = define_range(passengers)
+
+        valid_types = [typ for typ, cap in type_ts_mapping.items() if min_cap <= cap <= max_cap]
+
+        filtered = orders_df[orders_df['ТипТС'].isin(valid_types) & orders_df['ЦенаЗаЧас'].notna()]
+
+        if filtered.empty:
+            return jsonify({'min': None, 'max': None})
+
+        return jsonify({
+            'min': int(filtered['ЦенаЗаЧас'].min()),
+            'max': int(filtered['ЦенаЗаЧас'].max())
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
