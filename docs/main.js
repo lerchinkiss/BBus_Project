@@ -1,19 +1,11 @@
 // === main.js ===
 
 let knownCompanies = [];
-let priceHintsRaw = [];
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
   .then(companies => {
     knownCompanies = companies;
-  });
-
-fetch('https://bbus-project.onrender.com/api/price-hints')
-  .then(response => response.json())
-  .then(data => {
-    priceHintsRaw = data;
-    renderPriceHintTable();
   });
 
 const input = document.getElementById('company-input');
@@ -120,26 +112,13 @@ function selectCompany(name) {
           <td>${row.статус}</td>
           <td>${row.маршрут}</td>
         </tr>`).join('') : '<tr><td colspan="7">История заказов отсутствует</td></tr>';
-      document.querySelector('.table-box tbody').innerHTML = rows;
+      historyTable.innerHTML = rows;
     });
 }
 
 function validatePassengers(input) {
   const warning = document.getElementById('passenger-warning');
   warning.style.display = (input.value < 1 || input.value > 59) ? 'block' : 'none';
-}
-
-function renderPriceHintTable() {
-  const table = document.getElementById('price-hint-table');
-  const body = document.getElementById('price-hint-body');
-  body.innerHTML = '';
-  if (!Array.isArray(priceHintsRaw)) return;
-  priceHintsRaw.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${row.range}</td><td>${row.min}</td><td>${row.max}</td>`;
-    body.appendChild(tr);
-  });
-  table.style.display = 'block';
 }
 
 document.getElementById('submit-button').onclick = function(e) {
