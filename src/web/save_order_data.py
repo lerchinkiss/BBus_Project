@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-ORDERS_FILE = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
+ORDERS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'outputs/web_orders_history.xlsx')
 
 def save_web_order_data(order_data):
     """
