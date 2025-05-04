@@ -70,6 +70,14 @@ function renderCompanySuggestions(companies) {
 function selectCompany(name) {
   input.value = name;
   suggestions.style.display = 'none';
+  
+  // Если выбран "Новый заказчик", показываем поле для ввода
+  if (name === "Новый заказчик") {
+    document.getElementById('new-company-container').style.display = 'block';
+    document.getElementById('new-company').focus();
+  } else {
+    document.getElementById('new-company-container').style.display = 'none';
+  }
 
   const preferencesBox = document.querySelector('.preferences-box');
   const recommendationsBox = document.querySelector('.recommendations-box');
@@ -156,3 +164,47 @@ document.getElementById('submit-button').onclick = function(e) {
       box.innerHTML = html;
     });
 };
+
+function saveOrder() {
+    const company = document.getElementById('company-input').value;
+    const passengers = document.getElementById('passengers').value;
+    const price = document.getElementById('price').value;
+    const hours = document.getElementById('hours').value;
+    const orderType = document.getElementById('order-type').value;
+    
+    const orderData = {
+        'Заказчик': company,
+        'КоличествоПассажиров': parseInt(passengers),
+        'ЦенаЗаЧас': parseInt(price),
+        'ЧасыАренды': parseInt(hours),
+        'ТипЗаказа': orderType,
+        'ФактическаяСтоимость': parseInt(price) * parseInt(hours)
+    };
+    
+    fetch('/api/save_order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Заказ успешно сохранен!');
+        } else {
+            alert('Ошибка при сохранении заказа: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Ошибка при сохранении заказа: ' + error);
+    });
+}
+
+// Добавляем обработчик для кнопки сохранения
+document.getElementById('save-order').addEventListener('click', saveOrder);
+
+// Добавляем обработчик для поля нового заказчика
+document.getElementById('new-company').addEventListener('input', function(e) {
+    input.value = e.target.value;
+});

@@ -1,0 +1,6 @@
+Flask
+catboost
+pandas
+openpyxl
+gunicorn
+flask-cors 

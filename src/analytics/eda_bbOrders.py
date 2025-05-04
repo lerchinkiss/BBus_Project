@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Импортируем link_tables.py
-from app.link_tables import *
+from link_tables import *
 
 # Загружаем датасет и применяем расшифровку
 file_path = os.path.join("filtered_datasets", "bbOrders_filtered.xlsx")

@@ -1,12 +1,4 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from sklearn.impute import SimpleImputer
-import re
+from common_imports import *
 
 # Настройка отображения
 pd.set_option('display.max_columns', None)
@@ -71,20 +63,7 @@ def create_customer_features(df):
     }).reset_index()
     
     # Переименование колонок
-    customer_features.columns = [
-        'Заказчик',
-        'КоличествоЗаказов',
-        'СредняяСтоимость',
-        'ОбщаяСтоимость',
-        'СредняяДлительность',
-        'СреднееКоличествоПассажиров',
-        'ДоляСобственногоТС',
-        'ДоляЗаказовСТуалетом',
-        'ДоляЗаказовСБагажом',
-        'ДоляОплаченныхЗаказов',
-        'КоличествоЛетАктивности',
-        'КоличествоМесяцевАктивности'
-    ]
+    customer_features.columns = CLUSTERING_FEATURES
     
     # Заполнение пропущенных значений
     numeric_features = customer_features.select_dtypes(include=[np.number]).columns
@@ -99,7 +78,7 @@ def find_optimal_clusters(data, max_clusters=10):
     silhouette_scores = []
     
     for n_clusters in range(2, max_clusters + 1):
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        kmeans = KMeans(n_clusters=n_clusters, **KMEANS_PARAMS)
         kmeans.fit(data)
         wcss.append(kmeans.inertia_)
         silhouette_scores.append(silhouette_score(data, kmeans.labels_))
@@ -118,7 +97,7 @@ def find_optimal_clusters(data, max_clusters=10):
     ax2.set_ylabel('Silhouette Score')
     
     plt.tight_layout()
-    plt.savefig('clustering_analysis.png')
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'clustering_analysis.png'))
     plt.close()
     
     # Возвращаем оптимальное количество кластеров
@@ -145,7 +124,7 @@ def visualize_clusters(data, labels, features):
             alpha=0.6
         )
         plt.title(f'Кластеры по признакам {pair[0]} и {pair[1]}')
-        plt.savefig(f'clusters_{pair[0]}_{pair[1]}.png')
+        plt.savefig(os.path.join(OUTPUTS_DIR, f'clusters_{pair[0]}_{pair[1]}.png'))
         plt.close()
 
 def analyze_clusters(data, labels):
@@ -164,50 +143,50 @@ def analyze_clusters(data, labels):
     }).round(2)
     
     # Сохранение результатов анализа
-    cluster_analysis.to_excel('cluster_analysis.xlsx')
+    cluster_analysis.to_excel(os.path.join(OUTPUTS_DIR, 'cluster_analysis.xlsx'))
     
     return cluster_analysis
 
 def main():
     # Загрузка данных
-    print("Загрузка данных...")
-    df = pd.read_excel('filtered_datasets/bbOrders_filtered.xlsx')
+    logger.info("Загрузка данных...")
+    df = pd.read_excel(os.path.join(DATA_DIR, "filtered_datasets", "bbOrders_filtered.xlsx"))
     
     # Предобработка данных
-    print("Предобработка данных...")
+    logger.info("Предобработка данных...")
     df_processed = preprocess_data(df)
     
     # Создание признаков для клиентов
-    print("Создание признаков для клиентов...")
+    logger.info("Создание признаков для клиентов...")
     customer_features = create_customer_features(df_processed)
     
     # Масштабирование признаков
-    print("Масштабирование признаков...")
+    logger.info("Масштабирование признаков...")
     features_to_scale = customer_features.columns[1:]  # Все колонки кроме 'Заказчик'
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(customer_features[features_to_scale])
     
     # Поиск оптимального количества кластеров
-    print("Поиск оптимального количества кластеров...")
+    logger.info("Поиск оптимального количества кластеров...")
     optimal_clusters = find_optimal_clusters(scaled_features)
-    print(f"Оптимальное количество кластеров: {optimal_clusters}")
+    logger.info(f"Оптимальное количество кластеров: {optimal_clusters}")
     
     # Кластеризация
-    print("Выполнение кластеризации...")
-    kmeans = KMeans(n_clusters=optimal_clusters, random_state=42)
+    logger.info("Выполнение кластеризации...")
+    kmeans = KMeans(n_clusters=optimal_clusters, **KMEANS_PARAMS)
     cluster_labels = kmeans.fit_predict(scaled_features)
     
     # Визуализация кластеров
-    print("Визуализация кластеров...")
+    logger.info("Визуализация кластеров...")
     visualize_clusters(customer_features, cluster_labels, features_to_scale)
     
     # Анализ кластеров
-    print("Анализ кластеров...")
+    logger.info("Анализ кластеров...")
     cluster_analysis = analyze_clusters(customer_features, cluster_labels)
-    print("\nАнализ кластеров:")
-    print(cluster_analysis)
+    logger.info("\nАнализ кластеров:")
+    logger.info(cluster_analysis)
     
-    print("Анализ завершен. Результаты сохранены в файлы.")
+    logger.info("Анализ завершен. Результаты сохранены в файлы.")
 
 if __name__ == "__main__":
     main() 

@@ -1,15 +1,8 @@
-import os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from app.link_tables import apply_links
+from common_imports import *
+from link_tables import apply_links
 
 # Загрузка и подготовка
-df = pd.read_excel(os.path.join("../../data/filtered_datasets", "bbOrders_filtered.xlsx"))
+df = pd.read_excel(os.path.join(DATA_DIR, "filtered_datasets", "bbOrders_filtered.xlsx"))
 df = apply_links(df)
 
 # Очистка и преобразование
@@ -71,7 +64,7 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(features)
 
 # Кластеризация
-kmeans = KMeans(n_clusters=4, random_state=42)
+kmeans = KMeans(n_clusters=4, random_state=RANDOM_STATE)
 customer_df['Кластер'] = kmeans.fit_predict(X_scaled)
 
 # PCA для визуализации
@@ -89,7 +82,8 @@ plt.ylabel("PCA 2")
 plt.legend(title="Кластер")
 plt.grid(True)
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'customer_clusters.png'))
+plt.close()
 
 # 2. Распределение по количеству заказов
 plt.figure(figsize=(10, 6))
@@ -99,7 +93,8 @@ plt.xlabel("Кластер")
 plt.ylabel("Количество заказов")
 plt.grid(True)
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'orders_distribution.png'))
+plt.close()
 
 # 3. Распределение по средней стоимости
 plt.figure(figsize=(10, 6))
@@ -109,10 +104,11 @@ plt.xlabel("Кластер")
 plt.ylabel("Средняя стоимость")
 plt.grid(True)
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'cost_distribution.png'))
+plt.close()
 
 # Сводка по кластерам
-print("\n Средние значения по кластерам:")
+logger.info("\n Средние значения по кластерам:")
 cluster_stats = customer_df.groupby('Кластер').agg({
     'Кол_заказов': ['mean', 'std'],
     'Сред_стоимость': ['mean', 'std'],
@@ -120,16 +116,16 @@ cluster_stats = customer_df.groupby('Кластер').agg({
     'Разнообразие_ТС': ['mean', 'std'],
     'Период_активности': ['mean', 'std']
 }).round(2)
-print(cluster_stats)
+logger.info(cluster_stats)
 
 # Описание кластеров
-print("\n Описание кластеров:")
+logger.info("\n Описание кластеров:")
 for cluster in sorted(customer_df['Кластер'].unique()):
     cluster_data = customer_df[customer_df['Кластер'] == cluster]
-    print(f"\nКластер {cluster}:")
-    print(f"Количество заказчиков: {len(cluster_data)}")
-    print(f"Среднее количество заказов: {cluster_data['Кол_заказов'].mean():.2f}")
-    print(f"Средняя стоимость заказа: {cluster_data['Сред_стоимость'].mean():.2f}")
-    print(f"Среднее количество пассажиров: {cluster_data['Сред_пассажиров'].mean():.2f}")
-    print("\nТоп-5 заказчиков по общей стоимости:")
-    print(cluster_data.nlargest(5, 'Общ_стоимость')[['Заказчик', 'Кол_заказов', 'Сред_стоимость']])
+    logger.info(f"\nКластер {cluster}:")
+    logger.info(f"Количество заказчиков: {len(cluster_data)}")
+    logger.info(f"Среднее количество заказов: {cluster_data['Кол_заказов'].mean():.2f}")
+    logger.info(f"Средняя стоимость заказа: {cluster_data['Сред_стоимость'].mean():.2f}")
+    logger.info(f"Среднее количество пассажиров: {cluster_data['Сред_пассажиров'].mean():.2f}")
+    logger.info("\nТоп-5 заказчиков по общей стоимости:")
+    logger.info(cluster_data.nlargest(5, 'Общ_стоимость')[['Заказчик', 'Кол_заказов', 'Сред_стоимость']])

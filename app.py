@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from catboost import CatBoostClassifier, Pool
 from link_tables import apply_links
+from src.web.save_order_data import save_web_order_data
 import pickle
 import time
 
@@ -187,6 +188,17 @@ def recommend():
         return jsonify(recommendations)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/save_order', methods=['POST'])
+def save_order():
+    try:
+        order_data = request.json
+        if save_web_order_data(order_data):
+            return jsonify({"status": "success", "message": "Заказ успешно сохранен"})
+        else:
+            return jsonify({"status": "error", "message": "Ошибка при сохранении заказа"}), 500
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))

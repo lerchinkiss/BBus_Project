@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from app.link_tables import apply_links
+from link_tables import apply_links
 
 # === Шаг 1: Загрузка данных ===
 print("\nЗагрузка данных...")

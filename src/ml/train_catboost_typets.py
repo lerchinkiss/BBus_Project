@@ -3,7 +3,7 @@ import os
 import pandas as pd
 # Добавить корневую директорию в путь
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from app.link_tables import apply_links
+from link_tables import apply_links
 
 # Определяем абсолютные пути
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -49,4 +49,4 @@ os.makedirs(PREPARED_DATA_DIR, exist_ok=True)
 X.to_excel(os.path.join(PREPARED_DATA_DIR, "X_train_ready.xlsx"), index=False)
 y.to_excel(os.path.join(PREPARED_DATA_DIR, "y_train_ready.xlsx"), index=False)
 
-print("\n✅ Данные для обучения сохранены в prepared_data/X_train_ready.xlsx и y_train_ready.xlsx")
+print("\n Данные для обучения сохранены в prepared_data/X_train_ready.xlsx и y_train_ready.xlsx")
