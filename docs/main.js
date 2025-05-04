@@ -133,59 +133,26 @@ document.getElementById('submit-button').onclick = function(e) {
     return;
   }
 
-  fetch('https://bbus-project.onrender.com/api/save_order', {
+  fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ company, passengers, price, status, date: new Date().toISOString().split('T')[0] })
+    body: JSON.stringify({ company, passengers, price, status })
   })
     .then(response => response.json())
-    .then(saveResult => {
-      if (!saveResult.success) {
-        alert('Ошибка при сохранении заявки: ' + (saveResult.error || 'Неизвестная ошибка'));
-        return;
+    .then(recommendations => {
+      const box = document.querySelector('.recommendations-box');
+      let html = '<div class="section-title">Рекомендованные типы ТС</div>';
+      if (recommendations.length === 0) {
+        html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
+      } else {
+        recommendations.forEach(rec => {
+          html += `
+            <div class="recommendation">
+              <p><strong>${rec.type}</strong> (вместимость: ${rec.capacity} мест)</p>
+              <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
+            </div>`;
+        });
       }
-      // После успешного сохранения экспортируем в Excel
-      fetch(`https://bbus-project.onrender.com/api/export_excel/${encodeURIComponent(company)}`)
-        .then(response => response.blob())
-        .then(blob => {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${company}_orders.xlsx`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        })
-        .catch(error => {
-          console.error('Ошибка при экспорте данных:', error);
-        });
-
-      // После этого выводим рекомендации как раньше
-      fetch('https://bbus-project.onrender.com/api/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company, passengers, price, status })
-      })
-        .then(response => response.json())
-        .then(recommendations => {
-          const box = document.querySelector('.recommendations-box');
-          let html = '<div class="section-title">Рекомендованные типы ТС</div>';
-          if (recommendations.length === 0) {
-            html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
-          } else {
-            recommendations.forEach(rec => {
-              html += `
-                <div class="recommendation">
-                  <p><strong>${rec.type}</strong> (вместимость: ${rec.capacity} мест)</p>
-                  <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
-                </div>`;
-            });
-          }
-          box.innerHTML = html;
-        });
-    })
-    .catch(error => {
-      alert('Ошибка при сохранении заявки: ' + error);
+      box.innerHTML = html;
     });
 };
