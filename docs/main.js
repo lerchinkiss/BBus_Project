@@ -1,6 +1,5 @@
-// === main.js ===
-
 let knownCompanies = [];
+let isNewCustomer = false;
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
@@ -10,6 +9,8 @@ fetch('https://bbus-project.onrender.com/api/companies')
 
 const input = document.getElementById('company-input');
 const suggestions = document.getElementById('company-suggestions');
+const newCompanyBlock = document.getElementById('new-company-block');
+const newCompanyInput = document.getElementById('new-company-name');
 
 input.addEventListener('input', filterCompanies);
 input.addEventListener('focus', showAllCompanies);
@@ -70,12 +71,14 @@ function renderCompanySuggestions(companies) {
 function selectCompany(name) {
   input.value = name;
   suggestions.style.display = 'none';
+  isNewCustomer = name === 'Новый заказчик';
+  newCompanyBlock.style.display = isNewCustomer ? 'block' : 'none';
 
   const preferencesBox = document.querySelector('.preferences-box');
   const recommendationsBox = document.querySelector('.recommendations-box');
   const historyTable = document.querySelector('.table-box tbody');
 
-  if (name === 'Новый заказчик') {
+  if (isNewCustomer) {
     preferencesBox.innerHTML = '<div class="section-title">Предпочтения клиента</div><p>Нет данных для нового заказчика</p>';
     recommendationsBox.innerHTML = '<div class="section-title">Рекомендованные типы ТС</div><p>Нет данных</p>';
     historyTable.innerHTML = '<tr><td colspan="7">История заказов отсутствует</td></tr>';
@@ -121,28 +124,37 @@ function validatePassengers(input) {
   warning.style.display = (input.value < 1 || input.value > 59) ? 'block' : 'none';
 }
 
-document.getElementById('submit-button').onclick = function(e) {
+document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
-  const company = document.getElementById('company-input').value;
+  const company = input.value;
   const passengers = document.getElementById('passengers').value;
   const price = document.getElementById('price').value;
   const status = document.getElementById('status').value;
+  const newCompanyName = newCompanyInput.value;
 
-  if (!company || !passengers || !price) {
+  if (!company || !passengers || !price || (isNewCustomer && !newCompanyName)) {
     alert('Пожалуйста, заполните все поля формы');
     return;
   }
 
+  const postData = {
+    company,
+    passengers,
+    price,
+    status,
+    new_company_name: isNewCustomer ? newCompanyName : ''
+  };
+
   fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ company, passengers, price, status })
+    body: JSON.stringify(postData)
   })
     .then(response => response.json())
     .then(recommendations => {
       const box = document.querySelector('.recommendations-box');
       let html = '<div class="section-title">Рекомендованные типы ТС</div>';
-      if (recommendations.length === 0) {
+      if (!recommendations.length) {
         html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
       } else {
         recommendations.forEach(rec => {
@@ -154,5 +166,12 @@ document.getElementById('submit-button').onclick = function(e) {
         });
       }
       box.innerHTML = html;
+
+      // Сохраняем заказ
+      fetch('https://bbus-project.onrender.com/api/save_order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...postData, recommendations })
+      });
     });
 };

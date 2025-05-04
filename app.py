@@ -192,13 +192,11 @@ def recommend():
 @app.route('/api/save_order', methods=['POST'])
 def save_order():
     try:
-        order_data = request.json
-        if save_web_order_data(order_data):
-            return jsonify({"status": "success", "message": "Заказ успешно сохранен"})
-        else:
-            return jsonify({"status": "error", "message": "Ошибка при сохранении заказа"}), 500
+        data = request.json
+        save_web_order_data(data)
+        return jsonify({'status': 'ok'})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))

@@ -48,4 +48,20 @@ def apply_links(bbOrders, filtered_path=filtered_path, raw_path=raw_path):
         bbOrders[col] = bbOrders[col].map(mapping).fillna(bbOrders[col])
         print(f"{col} → {filename}.Description")
 
+    locations_path = os.path.join(filtered_path, 'bbTransportLocations_filtered.xlsx')
+    if not os.path.exists(locations_path):
+        locations_path = os.path.join(raw_path, 'bbTransportLocations_filtered.xlsx')
+
+    if os.path.exists(locations_path):
+        loc_df = pd.read_excel(locations_path)
+        if 'Ref' in loc_df.columns and 'Description' in loc_df.columns:
+            loc_map = dict(zip(loc_df['Ref'], loc_df['Description']))
+            bbOrders['ЗагрузкаПункт'] = bbOrders['ЗагрузкаПункт'].map(loc_map).fillna(bbOrders['ЗагрузкаПункт'])
+            bbOrders['РазгрузкаПункт'] = bbOrders['РазгрузкаПункт'].map(loc_map).fillna(bbOrders['РазгрузкаПункт'])
+            print("ЗагрузкаПункт / РазгрузкаПункт → bbTransportLocations_filtered.Description")
+        else:
+            print("⚠️ В файле bbTransportLocations_filtered.xlsx не хватает колонок Ref / Description")
+    else:
+        print("⚠️ Файл bbTransportLocations_filtered.xlsx не найден")
+
     return bbOrders
