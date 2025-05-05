@@ -201,7 +201,7 @@ def save_order():
 @app.route('/api/view_orders')
 def view_orders():
     try:
-        orders_file = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
+        orders_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx'))
         if not os.path.exists(orders_file):
             return jsonify({'error': 'Файл не найден'}), 404
         df = pd.read_excel(orders_file)

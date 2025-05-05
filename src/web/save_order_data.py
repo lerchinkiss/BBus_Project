@@ -2,12 +2,11 @@ import os
 import pandas as pd
 from datetime import datetime
 
-ORDERS_FILE = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
+# Абсолютный путь до корня проекта
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+ORDERS_FILE = os.path.join(PROJECT_ROOT, 'outputs/web_orders_history.xlsx')
 
 def save_web_order_data(order_data):
-    """
-    Сохраняет данные заказа из веб-приложения в Excel файл
-    """
     os.makedirs(os.path.dirname(ORDERS_FILE), exist_ok=True)
     order_data['ДатаСоздания'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -21,7 +20,6 @@ def save_web_order_data(order_data):
 
     updated_df.to_excel(ORDERS_FILE, index=False)
 
-    # Диагностический вывод
     print("=== Сохранение нового заказа ===")
     print("Данные:", order_data)
     print("Файл сохранения:", ORDERS_FILE)
