@@ -209,6 +209,20 @@ def view_orders():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/download_orders')
+def download_orders():
+    try:
+        file_path = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
+        if os.path.exists(file_path):
+            return send_from_directory(
+                directory=os.path.dirname(file_path),
+                path=os.path.basename(file_path),
+                as_attachment=True
+            )
+        return jsonify({'error': 'Файл не найден'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
