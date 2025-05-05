@@ -205,7 +205,7 @@ def view_orders():
         if not os.path.exists(orders_file):
             return jsonify({'error': 'Файл не найден'}), 404
         df = pd.read_excel(orders_file)
-        return jsonify(df.to_dict(orient='records'))
+        return df.to_json(orient='records', force_ascii=False)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
