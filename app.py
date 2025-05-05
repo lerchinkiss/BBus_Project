@@ -198,17 +198,16 @@ def save_order():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/view_orders', methods=['GET'])
+@app.route('/api/view_orders')
 def view_orders():
     try:
-        path = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
-        if os.path.exists(path):
-            df = pd.read_excel(path)
-            return jsonify(df.to_dict(orient='records'))
-        return jsonify({'error': 'Файл не найден'}), 404
+        orders_file = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
+        if not os.path.exists(orders_file):
+            return jsonify({'error': 'Файл не найден'}), 404
+        df = pd.read_excel(orders_file)
+        return jsonify(df.to_dict(orient='records'))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 if __name__ == '__main__':
