@@ -211,20 +211,5 @@ function calculateAndStoreBookingTimes() {
 // === Ограничение ввода и очистка ===
 const datetimeInput = document.getElementById("booking_datetime");
 
-datetimeInput.addEventListener("input", () => {
-  if (datetimeInput.value.length > 16) {
-    datetimeInput.value = datetimeInput.value.slice(0, 16);
-  }
-  calculateAndStoreBookingTimes();
-});
-
-datetimeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Backspace" && datetimeInput.value.length <= 16) {
-    datetimeInput.value = "";
-    localStorage.removeItem("lastBookingStart");
-    localStorage.removeItem("lastBookingEnd");
-    e.preventDefault();
-  }
-});
-
+datetimeInput.addEventListener("input", calculateAndStoreBookingTimes);
 document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);
