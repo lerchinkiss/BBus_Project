@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pandas as pd
 import os
+import json
+from datetime import datetime
 from catboost import CatBoostClassifier, Pool
 from link_tables import apply_links
 from src.web.save_order_data import save_web_order_data
@@ -11,10 +13,16 @@ import time
 app = Flask(__name__, static_folder='docs')
 CORS(app)
 
-# Определяем абсолютные пути
+# Абсолютные пути
 BASE_DIR = os.path.dirname(__file__)
 CACHE_FILE = os.path.join(BASE_DIR, 'outputs/data_cache.pkl')
+ORDERS_FILE = os.path.join(BASE_DIR, 'outputs/web_orders_history.xlsx')
+FLEET_FILE = os.path.join(BASE_DIR, 'docs/fleet.json')
 CACHE_TIMEOUT = 3600
+
+# Загрузка автопарка
+with open(FLEET_FILE, 'r', encoding='utf-8') as f:
+    fleet_info = json.load(f)
 
 def save_to_cache(data):
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
@@ -193,6 +201,34 @@ def recommend():
 def save_order():
     try:
         data = request.json
+
+        # Проверка занятости транспорта
+        transport_type = data.get('type')
+        start_str = data.get('booking_start')
+        end_str = data.get('booking_end')
+
+        if not transport_type or not start_str or not end_str:
+            return jsonify({'error': 'Недостаточно данных для проверки автопарка'}), 400
+
+        start = datetime.strptime(start_str, "%Y-%m-%d %H:%M")
+        end = datetime.strptime(end_str, "%Y-%m-%d %H:%M")
+        available_count = fleet_info.get(transport_type, 1)
+
+        if os.path.exists(ORDERS_FILE):
+            existing_orders = pd.read_excel(ORDERS_FILE)
+        else:
+            existing_orders = pd.DataFrame()
+
+        overlapping = existing_orders[
+            (existing_orders['type'] == transport_type) &
+            (existing_orders['booking_start'] <= end_str) &
+            (existing_orders['booking_end'] >= start_str)
+        ]
+
+        if len(overlapping) >= available_count:
+            return jsonify({'error': f'Все {available_count} {transport_type} уже забронированы на это время.'}), 409
+
+        # Всё ок — сохраняем
         save_web_order_data(data)
         return jsonify({'status': 'ok'})
     except Exception as e:
@@ -201,10 +237,9 @@ def save_order():
 @app.route('/api/view_orders')
 def view_orders():
     try:
-        orders_file = os.path.abspath(os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx'))
-        if not os.path.exists(orders_file):
+        if not os.path.exists(ORDERS_FILE):
             return jsonify({'error': 'Файл не найден'}), 404
-        df = pd.read_excel(orders_file)
+        df = pd.read_excel(ORDERS_FILE)
         return df.to_json(orient='records', force_ascii=False)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -212,17 +247,15 @@ def view_orders():
 @app.route('/api/download_orders')
 def download_orders():
     try:
-        file_path = os.path.join(os.path.dirname(__file__), 'outputs/web_orders_history.xlsx')
-        if os.path.exists(file_path):
+        if os.path.exists(ORDERS_FILE):
             return send_from_directory(
-                directory=os.path.dirname(file_path),
-                path=os.path.basename(file_path),
+                directory=os.path.dirname(ORDERS_FILE),
+                path=os.path.basename(ORDERS_FILE),
                 as_attachment=True
             )
         return jsonify({'error': 'Файл не найден'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
