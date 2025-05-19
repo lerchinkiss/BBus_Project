@@ -62,10 +62,11 @@
         <th>Дата бронирования</th>
         <th>Окончание брони</th>
         <th>Сумма оплаты</th>
+        <th>Тип ТС</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="7">Загрузка...</td></tr>
+      <tr><td colspan="9">Загрузка...</td></tr>
     </tbody>
   </table>
 
@@ -79,7 +80,7 @@
       .then(data => {
         const tbody = document.querySelector('#orders-table tbody');
         if (!data || !data.length) {
-          tbody.innerHTML = '<tr><td colspan="7">Нет данных</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="9">Нет данных</td></tr>';
           return;
         }
         tbody.innerHTML = data.map(order => `
@@ -92,11 +93,12 @@
             <td>${order.booking_start || '-'}</td>
             <td>${order.booking_end || '-'}</td>
             <td>${order.total_price || '-'}</td>
+            <td>${order.type || '-'}</td>
           </tr>
         `).join('');
       })
       .catch(err => {
-        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="7">Ошибка загрузки</td></tr>`;
+        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="9">Ошибка загрузки</td></tr>`;
         console.error('Ошибка:', err);
       });
   </script>
