@@ -61,6 +61,7 @@
         <th>Дата создания</th>
         <th>Дата бронирования</th>
         <th>Окончание брони</th>
+        <th>Сумма оплаты</th>
       </tr>
     </thead>
     <tbody>
@@ -90,6 +91,7 @@
             <td>${order['ДатаСоздания'] || '-'}</td>
             <td>${order.booking_start || '-'}</td>
             <td>${order.booking_end || '-'}</td>
+            <td>${order.total_price || '-'}</td>
           </tr>
         `).join('');
       })

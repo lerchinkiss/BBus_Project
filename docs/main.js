@@ -160,7 +160,8 @@ document.getElementById('submit-button').onclick = function (e) {
     new_company_name: isNewCustomer ? newCompanyName : '',
     booking_start: formattedStart,
     booking_end: formattedEnd,
-    duration_hours: hours
+    duration_hours: hours,
+    total_price: totalCost
   };
 
   // Получение рекомендаций и сохранение заказа
@@ -197,7 +198,8 @@ document.getElementById('submit-button').onclick = function (e) {
 
 
 function calculateAndStoreBookingTimes() {
-  const datetimeStr = document.getElementById("booking_datetime").value;
+  const datetimeInput = document.getElementById("booking_datetime");
+  const datetimeStr = datetimeInput.value;
   const hours = parseFloat(document.getElementById("hours").value);
 
   if (!datetimeStr || isNaN(hours)) return;
@@ -216,7 +218,43 @@ function calculateAndStoreBookingTimes() {
   localStorage.setItem("lastBookingEnd", formattedEnd);
 }
 
-// Вызовем при любом изменении даты или часов
-document.getElementById("booking_datetime").addEventListener("input", calculateAndStoreBookingTimes);
+// === Ограничение ввода и очистка ===
+const datetimeInput = document.getElementById("booking_datetime");
+
+// Ограничение до 16 символов (формат YYYY-MM-DDTHH:mm)
+datetimeInput.addEventListener("input", () => {
+  if (datetimeInput.value.length > 16) {
+    datetimeInput.value = datetimeInput.value.slice(0, 16);
+  }
+  calculateAndStoreBookingTimes();
+});
+
+// Очистка поля при нажатии Backspace
+datetimeInput.addEventListener("keydown", (e) => {
+  if (e.key === "Backspace" && datetimeInput.value.length <= 16) {
+    datetimeInput.value = "";
+    localStorage.removeItem("lastBookingStart");
+    localStorage.removeItem("lastBookingEnd");
+    e.preventDefault();
+  }
+});
+
+// Ввод часов бронирования
 document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);
+
+const datetimeInput = document.getElementById("booking_datetime");
+
+datetimeInput.addEventListener("input", () => {
+  // ограничим до 16 символов: YYYY-MM-DDTHH:mm
+  if (datetimeInput.value.length > 16) {
+    datetimeInput.value = datetimeInput.value.slice(0, 16);
+  }
+});
+
+datetimeInput.addEventListener("keydown", (e) => {
+  if (e.key === "Backspace" && datetimeInput.value.length <= 16) {
+    datetimeInput.value = ""; // очищаем всё поле
+    e.preventDefault();
+  }
+});
 
