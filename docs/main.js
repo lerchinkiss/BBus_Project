@@ -126,25 +126,44 @@ function validatePassengers(input) {
 
 document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
+
   const company = input.value;
   const passengers = document.getElementById('passengers').value;
-  const price = document.getElementById('price').value;
+  const pricePerHour = parseFloat(document.getElementById('price').value);
+  const hours = parseFloat(document.getElementById('hours').value);
   const status = document.getElementById('status').value;
   const newCompanyName = newCompanyInput.value;
+  const datetimeStr = document.getElementById("booking_datetime").value;
 
-  if (!company || !passengers || !price || (isNewCustomer && !newCompanyName)) {
-    alert('Пожалуйста, заполните все поля формы');
+  if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
+    alert('Пожалуйста, заполните все поля формы корректно');
     return;
   }
+
+  // Расчёт времени бронирования
+  const start = new Date(datetimeStr);
+  const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+
+  const pad = n => n.toString().padStart(2, '0');
+  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  const formattedStart = format(start);
+  const formattedEnd = format(end);
+
+  const totalCost = Math.round(pricePerHour * hours);
+  document.getElementById("price-summary").textContent = `К оплате: ${totalCost.toLocaleString('ru-RU')} руб.`;
 
   const postData = {
     company,
     passengers,
-    price,
+    price: pricePerHour,
     status,
-    new_company_name: isNewCustomer ? newCompanyName : ''
+    new_company_name: isNewCustomer ? newCompanyName : '',
+    booking_start: formattedStart,
+    booking_end: formattedEnd,
+    duration_hours: hours
   };
 
+  // Получение рекомендаций и сохранение заказа
   fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -175,6 +194,7 @@ document.getElementById('submit-button').onclick = function (e) {
       });
     });
 };
+
 
 function calculateAndStoreBookingTimes() {
   const datetimeStr = document.getElementById("booking_datetime").value;
