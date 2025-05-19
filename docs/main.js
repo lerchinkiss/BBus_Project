@@ -140,16 +140,14 @@ document.getElementById('submit-button').onclick = function (e) {
     return;
   }
 
-  // Расчёт времени бронирования
   const start = new Date(datetimeStr);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
-
   const pad = n => n.toString().padStart(2, '0');
   const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
   const formattedStart = format(start);
   const formattedEnd = format(end);
-
   const totalCost = Math.round(pricePerHour * hours);
+
   document.getElementById("price-summary").textContent = `К оплате: ${totalCost.toLocaleString('ru-RU')} руб.`;
 
   const postData = {
@@ -164,7 +162,6 @@ document.getElementById('submit-button').onclick = function (e) {
     total_price: totalCost
   };
 
-  // Получение рекомендаций и сохранение заказа
   fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -187,7 +184,6 @@ document.getElementById('submit-button').onclick = function (e) {
       }
       box.innerHTML = html;
 
-      // Сохраняем заказ
       fetch('https://bbus-project.onrender.com/api/save_order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,24 +192,18 @@ document.getElementById('submit-button').onclick = function (e) {
     });
 };
 
-
 function calculateAndStoreBookingTimes() {
-  const datetimeInput = document.getElementById("booking_datetime");
   const datetimeStr = datetimeInput.value;
   const hours = parseFloat(document.getElementById("hours").value);
-
   if (!datetimeStr || isNaN(hours)) return;
 
   const start = new Date(datetimeStr);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
-
   const pad = n => n.toString().padStart(2, '0');
   const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-
   const formattedStart = format(start);
   const formattedEnd = format(end);
 
-  // Сохраняем во временное хранилище
   localStorage.setItem("lastBookingStart", formattedStart);
   localStorage.setItem("lastBookingEnd", formattedEnd);
 }
@@ -221,7 +211,6 @@ function calculateAndStoreBookingTimes() {
 // === Ограничение ввода и очистка ===
 const datetimeInput = document.getElementById("booking_datetime");
 
-// Ограничение до 16 символов (формат YYYY-MM-DDTHH:mm)
 datetimeInput.addEventListener("input", () => {
   if (datetimeInput.value.length > 16) {
     datetimeInput.value = datetimeInput.value.slice(0, 16);
@@ -229,7 +218,6 @@ datetimeInput.addEventListener("input", () => {
   calculateAndStoreBookingTimes();
 });
 
-// Очистка поля при нажатии Backspace
 datetimeInput.addEventListener("keydown", (e) => {
   if (e.key === "Backspace" && datetimeInput.value.length <= 16) {
     datetimeInput.value = "";
@@ -239,22 +227,4 @@ datetimeInput.addEventListener("keydown", (e) => {
   }
 });
 
-// Ввод часов бронирования
 document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);
-
-const datetimeInput = document.getElementById("booking_datetime");
-
-datetimeInput.addEventListener("input", () => {
-  // ограничим до 16 символов: YYYY-MM-DDTHH:mm
-  if (datetimeInput.value.length > 16) {
-    datetimeInput.value = datetimeInput.value.slice(0, 16);
-  }
-});
-
-datetimeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Backspace" && datetimeInput.value.length <= 16) {
-    datetimeInput.value = ""; // очищаем всё поле
-    e.preventDefault();
-  }
-});
-
