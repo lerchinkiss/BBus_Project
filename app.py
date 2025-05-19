@@ -214,11 +214,18 @@ def save_order():
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M")
         available_count = fleet_info.get(vehicle_type, 1)
 
+        # Загружаем историю заказов или создаём пустую таблицу
         if os.path.exists(ORDERS_FILE):
             existing_orders = pd.read_excel(ORDERS_FILE)
         else:
             existing_orders = pd.DataFrame()
 
+        # Добавляем недостающие колонки (для пустого или старого файла)
+        for col in ['vehicle_type', 'booking_start', 'booking_end']:
+            if col not in existing_orders.columns:
+                existing_orders[col] = None
+
+        # Фильтрация по пересекающимся заказам
         overlapping = existing_orders[
             (existing_orders['vehicle_type'] == vehicle_type) &
             (existing_orders['booking_start'] <= end_str) &
@@ -231,8 +238,10 @@ def save_order():
         # Всё ок — сохраняем
         save_web_order_data(data)
         return jsonify({'status': 'ok'})
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/view_orders')
 def view_orders():
