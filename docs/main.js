@@ -128,51 +128,19 @@ function validatePassengers(input) {
 document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
 
-  const company = input.value;
   const passengers = document.getElementById('passengers').value;
   const pricePerHour = parseFloat(document.getElementById('price').value);
   const hours = parseFloat(document.getElementById('hours').value);
-  const status = document.getElementById('status').value;
-  const newCompanyName = newCompanyInput.value;
-  const datetimeStr = document.getElementById("booking_datetime").value;
 
-  if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
-    alert('Пожалуйста, заполните все поля формы корректно');
+  if (isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours)) {
+    alert('Пожалуйста, заполните все поля перед подбором транспорта.');
     return;
   }
-
-  if (!selectedTransportType) {
-    alert("Пожалуйста, выберите тип транспорта из списка.");
-    return;
-  }
-
-  const start = new Date(datetimeStr);
-  const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
-  const pad = n => n.toString().padStart(2, '0');
-  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-  const formattedStart = format(start);
-  const formattedEnd = format(end);
-  const totalCost = Math.round(pricePerHour * hours);
-
-  document.getElementById("price-summary").textContent = `К оплате: ${totalCost.toLocaleString('ru-RU')} руб.`;
-
-  const postData = {
-    company,
-    passengers,
-    price: pricePerHour,
-    status,
-    new_company_name: isNewCustomer ? newCompanyName : '',
-    booking_start: formattedStart,
-    booking_end: formattedEnd,
-    duration_hours: hours,
-    total_price: totalCost,
-    type: selectedTransportType
-  };
 
   fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(postData)
+    body: JSON.stringify({ passengers, price: pricePerHour })
   })
     .then(response => response.json())
     .then(recommendations => {
@@ -193,12 +161,54 @@ document.getElementById('submit-button').onclick = function (e) {
       }
       box.innerHTML = html;
     });
+};
 
-  // Сохраняем заказ
+function selectTransport(type) {
+  selectedTransportType = type;
+  const msg = document.getElementById("selected-transport-msg");
+  if (msg) {
+    msg.textContent = `Вы выбрали: ${type}`;
+  }
+
+  // Теперь сохраняем заказ
+  const company = input.value;
+  const passengers = document.getElementById('passengers').value;
+  const pricePerHour = parseFloat(document.getElementById('price').value);
+  const hours = parseFloat(document.getElementById('hours').value);
+  const status = document.getElementById('status').value;
+  const newCompanyName = newCompanyInput.value;
+  const datetimeStr = document.getElementById("booking_datetime").value;
+
+  if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
+    alert('Пожалуйста, заполните все поля корректно перед выбором ТС.');
+    return;
+  }
+
+  const start = new Date(datetimeStr);
+  const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+  const pad = n => n.toString().padStart(2, '0');
+  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  const formattedStart = format(start);
+  const formattedEnd = format(end);
+  const totalCost = Math.round(pricePerHour * hours);
+
+  const postData = {
+    company,
+    passengers,
+    price: pricePerHour,
+    status,
+    new_company_name: isNewCustomer ? newCompanyName : '',
+    booking_start: formattedStart,
+    booking_end: formattedEnd,
+    duration_hours: hours,
+    total_price: totalCost,
+    type: selectedTransportType
+  };
+
   fetch('https://bbus-project.onrender.com/api/save_order', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...postData })
+    body: JSON.stringify(postData)
   })
     .then(response => {
       if (!response.ok) {
@@ -210,16 +220,8 @@ document.getElementById('submit-button').onclick = function (e) {
       alert('Заказ успешно сохранён!');
     })
     .catch(err => {
-      alert(`❌ Ошибка: ${err.message}`);
+      alert(`Ошибка: ${err.message}`);
     });
-};
-
-function selectTransport(type) {
-  selectedTransportType = type;
-  const msg = document.getElementById("selected-transport-msg");
-  if (msg) {
-    msg.textContent = `Вы выбрали: ${type}`;
-  }
 }
 
 function calculateAndStoreBookingTimes() {
