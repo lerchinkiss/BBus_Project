@@ -1,5 +1,6 @@
 let knownCompanies = [];
 let isNewCustomer = false;
+let selectedTransportType = null;
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
@@ -140,6 +141,11 @@ document.getElementById('submit-button').onclick = function (e) {
     return;
   }
 
+  if (!selectedTransportType) {
+    alert("Пожалуйста, выберите тип транспорта из списка.");
+    return;
+  }
+
   const start = new Date(datetimeStr);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
   const pad = n => n.toString().padStart(2, '0');
@@ -159,7 +165,8 @@ document.getElementById('submit-button').onclick = function (e) {
     booking_start: formattedStart,
     booking_end: formattedEnd,
     duration_hours: hours,
-    total_price: totalCost
+    total_price: totalCost,
+    type: selectedTransportType
   };
 
   fetch('https://bbus-project.onrender.com/api/recommend', {
@@ -179,18 +186,41 @@ document.getElementById('submit-button').onclick = function (e) {
             <div class="recommendation">
               <p><strong>${rec.type}</strong> (вместимость: ${rec.capacity} мест)</p>
               <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
+              <button class="select-btn" onclick="selectTransport('${rec.type}')">Выбрать</button>
             </div>`;
         });
+        html += `<p id="selected-transport-msg" style="margin-top: 10px; font-weight: bold; color: green;"></p>`;
       }
       box.innerHTML = html;
+    });
 
-      fetch('https://bbus-project.onrender.com/api/save_order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...postData, recommendations })
-      });
+  // Сохраняем заказ
+  fetch('https://bbus-project.onrender.com/api/save_order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...postData })
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => { throw new Error(err.error); });
+      }
+      return response.json();
+    })
+    .then(() => {
+      alert('Заказ успешно сохранён!');
+    })
+    .catch(err => {
+      alert(`❌ Ошибка: ${err.message}`);
     });
 };
+
+function selectTransport(type) {
+  selectedTransportType = type;
+  const msg = document.getElementById("selected-transport-msg");
+  if (msg) {
+    msg.textContent = `Вы выбрали: ${type}`;
+  }
+}
 
 function calculateAndStoreBookingTimes() {
   const datetimeStr = datetimeInput.value;
@@ -208,8 +238,6 @@ function calculateAndStoreBookingTimes() {
   localStorage.setItem("lastBookingEnd", formattedEnd);
 }
 
-// === Ограничение ввода и очистка ===
 const datetimeInput = document.getElementById("booking_datetime");
-
 datetimeInput.addEventListener("input", calculateAndStoreBookingTimes);
 document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);
