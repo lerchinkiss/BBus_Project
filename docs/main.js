@@ -208,7 +208,7 @@ function selectTransport(type) {
     booking_end: formattedEnd,
     duration_hours: hours,
     total_price: totalCost,
-    type: selectedTransportType
+    vehicle_type: selectedTransportType
   };
 
   fetch('https://bbus-project.onrender.com/api/save_order', {

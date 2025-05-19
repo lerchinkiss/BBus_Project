@@ -203,16 +203,16 @@ def save_order():
         data = request.json
 
         # Проверка занятости транспорта
-        transport_type = data.get('type')
+        vehicle_type = data.get('vehicle_type')
         start_str = data.get('booking_start')
         end_str = data.get('booking_end')
 
-        if not transport_type or not start_str or not end_str:
+        if not vehicle_type or not start_str or not end_str:
             return jsonify({'error': 'Недостаточно данных для проверки автопарка'}), 400
 
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M")
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M")
-        available_count = fleet_info.get(transport_type, 1)
+        available_count = fleet_info.get(vehicle_type, 1)
 
         if os.path.exists(ORDERS_FILE):
             existing_orders = pd.read_excel(ORDERS_FILE)
@@ -220,13 +220,13 @@ def save_order():
             existing_orders = pd.DataFrame()
 
         overlapping = existing_orders[
-            (existing_orders['type'] == transport_type) &
+            (existing_orders['vehicle_type'] == vehicle_type) &
             (existing_orders['booking_start'] <= end_str) &
             (existing_orders['booking_end'] >= start_str)
         ]
 
         if len(overlapping) >= available_count:
-            return jsonify({'error': f'Все {available_count} {transport_type} уже забронированы на это время.'}), 409
+            return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
 
         # Всё ок — сохраняем
         save_web_order_data(data)
