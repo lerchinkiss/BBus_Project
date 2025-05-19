@@ -128,12 +128,11 @@ function validatePassengers(input) {
 document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
 
-  const passengers = document.getElementById('passengers').value;
+  const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
-  const hours = parseFloat(document.getElementById('hours').value);
 
-  if (isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours)) {
-    alert('Пожалуйста, заполните все поля перед подбором транспорта.');
+  if (isNaN(passengers) || isNaN(pricePerHour)) {
+    alert('Пожалуйста, введите корректные данные для подбора транспорта.');
     return;
   }
 
@@ -170,9 +169,8 @@ function selectTransport(type) {
     msg.textContent = `Вы выбрали: ${type}`;
   }
 
-  // Теперь сохраняем заказ
   const company = input.value;
-  const passengers = document.getElementById('passengers').value;
+  const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
   const hours = parseFloat(document.getElementById('hours').value);
   const status = document.getElementById('status').value;
