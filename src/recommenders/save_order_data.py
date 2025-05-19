@@ -1,32 +1,31 @@
-import os
 import pandas as pd
+import os
 from datetime import datetime
 
-def save_web_order_data(data: dict):
-    """
-    Сохраняет данные, отправленные из веб-интерфейса, в Excel-файл.
-    Если файл не существует — создаёт его.
-    """
-    filename = "orders_history.xlsx"
-    fields = [
-        "Дата", "Компания", "Название компании (если новая)",
-        "Количество пассажиров", "Цена за час", "Тип заказа", "Рекомендации"
-    ]
+ORDERS_FILE = "outputs/orders_history.xlsx"
 
-    record = {
-        "Дата": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "Компания": data.get("company"),
-        "Название компании (если новая)": data.get("new_company_name"),
-        "Количество пассажиров": data.get("passengers"),
-        "Цена за час": data.get("price"),
-        "Тип заказа": data.get("status"),
-        "Рекомендации": "; ".join([f"{r['type']} ({r['probability']*100:.1f}%)" for r in data.get("recommendations", [])])
-    }
 
-    if os.path.exists(filename):
-        df = pd.read_excel(filename)
+def save_order_data(order_data):
+    """
+    Сохраняет данные заказа в Excel файл
+    order_data: dict - данные заказа
+    """
+    # Создаем директорию, если её нет
+    os.makedirs(os.path.dirname(ORDERS_FILE), exist_ok=True)
+
+    # Добавляем дату создания заказа
+    order_data['ДатаСоздания'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Создаем DataFrame из данных заказа
+    new_order_df = pd.DataFrame([order_data])
+
+    # Если файл существует, читаем его и добавляем новые данные
+    if os.path.exists(ORDERS_FILE):
+        existing_df = pd.read_excel(ORDERS_FILE)
+        updated_df = pd.concat([existing_df, new_order_df], ignore_index=True)
     else:
-        df = pd.DataFrame(columns=fields)
+        updated_df = new_order_df
 
-    df = pd.concat([df, pd.DataFrame([record])], ignore_index=True)
-    df.to_excel(filename, index=False)
+    # Сохраняем обновленный DataFrame
+    updated_df.to_excel(ORDERS_FILE, index=False)
+    return True

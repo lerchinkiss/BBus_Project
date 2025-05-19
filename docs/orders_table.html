@@ -59,10 +59,12 @@
         <th>Цена за час</th>
         <th>Тип</th>
         <th>Дата создания</th>
+        <th>Дата бронирования</th>
+        <th>Окончание брони</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="5">Загрузка...</td></tr>
+      <tr><td colspan="7">Загрузка...</td></tr>
     </tbody>
   </table>
 
@@ -76,7 +78,7 @@
       .then(data => {
         const tbody = document.querySelector('#orders-table tbody');
         if (!data || !data.length) {
-          tbody.innerHTML = '<tr><td colspan="5">Нет данных</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7">Нет данных</td></tr>';
           return;
         }
         tbody.innerHTML = data.map(order => `
@@ -86,11 +88,13 @@
             <td>${order.price || '-'}</td>
             <td>${order.status || '-'}</td>
             <td>${order['ДатаСоздания'] || '-'}</td>
+            <td>${order.booking_start || '-'}</td>
+            <td>${order.booking_end || '-'}</td>
           </tr>
         `).join('');
       })
       .catch(err => {
-        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="5">Ошибка загрузки</td></tr>`;
+        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="7">Ошибка загрузки</td></tr>`;
         console.error('Ошибка:', err);
       });
   </script>

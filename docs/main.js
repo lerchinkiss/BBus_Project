@@ -175,3 +175,28 @@ document.getElementById('submit-button').onclick = function (e) {
       });
     });
 };
+
+function calculateAndStoreBookingTimes() {
+  const datetimeStr = document.getElementById("booking_datetime").value;
+  const hours = parseFloat(document.getElementById("hours").value);
+
+  if (!datetimeStr || isNaN(hours)) return;
+
+  const start = new Date(datetimeStr);
+  const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+
+  const pad = n => n.toString().padStart(2, '0');
+  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+
+  const formattedStart = format(start);
+  const formattedEnd = format(end);
+
+  // Сохраняем во временное хранилище
+  localStorage.setItem("lastBookingStart", formattedStart);
+  localStorage.setItem("lastBookingEnd", formattedEnd);
+}
+
+// Вызовем при любом изменении даты или часов
+document.getElementById("booking_datetime").addEventListener("input", calculateAndStoreBookingTimes);
+document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);
+
