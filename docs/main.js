@@ -128,18 +128,26 @@ function validatePassengers(input) {
 document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
 
+
+  const company = input.value;
+  const status = document.getElementById('status').value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
 
-  if (isNaN(passengers) || isNaN(pricePerHour)) {
-    alert('Пожалуйста, введите корректные данные для подбора транспорта.');
+  if (!company || !status || isNaN(passengers) || isNaN(pricePerHour)) {
+    alert('Пожалуйста, заполните все данные для подбора ТС.');
     return;
   }
 
   fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ passengers, price: pricePerHour })
+    body: JSON.stringify({
+      company,
+      passengers,
+      price: pricePerHour,
+      status
+    })
   })
     .then(response => response.json())
     .then(recommendations => {
