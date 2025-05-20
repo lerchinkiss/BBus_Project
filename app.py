@@ -7,6 +7,7 @@ from datetime import datetime
 from catboost import CatBoostClassifier, Pool
 from link_tables import apply_links
 from src.web.save_order_data import save_web_order_data
+from src.web.save_order_data import sheet
 import pickle
 import time
 
@@ -202,7 +203,6 @@ def save_order():
     try:
         data = request.json
 
-        # Проверка занятости транспорта
         vehicle_type = data.get('vehicle_type')
         start_str = data.get('booking_start')
         end_str = data.get('booking_end')
@@ -214,28 +214,21 @@ def save_order():
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M")
         available_count = fleet_info.get(vehicle_type, 1)
 
-        # Загружаем историю заказов или создаём пустую таблицу
-        if os.path.exists(ORDERS_FILE):
-            existing_orders = pd.read_excel(ORDERS_FILE)
-        else:
-            existing_orders = pd.DataFrame()
+        # Загрузка заказов из Google Sheets
+        orders_data = sheet.get_all_records()
+        df = pd.DataFrame(orders_data)
 
-        # Добавляем недостающие колонки (для пустого или старого файла)
-        for col in ['vehicle_type', 'booking_start', 'booking_end']:
-            if col not in existing_orders.columns:
-                existing_orders[col] = None
-
-        # Фильтрация по пересекающимся заказам
-        overlapping = existing_orders[
-            (existing_orders['vehicle_type'] == vehicle_type) &
-            (existing_orders['booking_start'] <= end_str) &
-            (existing_orders['booking_end'] >= start_str)
+        # Фильтрация по пересечению
+        overlapping = df[
+            (df['vehicle_type'] == vehicle_type) &
+            (df['booking_start'] <= end_str) &
+            (df['booking_end'] >= start_str)
         ]
 
         if len(overlapping) >= available_count:
             return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
 
-        # Всё ок — сохраняем
+        # Сохраняем в Google Таблицу
         save_web_order_data(data)
         return jsonify({'status': 'ok'})
 
