@@ -33,7 +33,7 @@ def save_web_order_data(order_data):
         order_data.get("booking_end", ""),
         order_data.get("duration_hours", ""),
         order_data.get("total_price", ""),
-        order_data.get("type", ""),
+        order_data.get("vehicle_type", "") or order_data.get("type", ""),
         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     ]
     sheet.append_row(row)
