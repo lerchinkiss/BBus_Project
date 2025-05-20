@@ -267,21 +267,5 @@ datetimeInput.addEventListener("input", () => {
   datetimeInput.value = raw;
 });
 
-datetimeInput.addEventListener("blur", () => {
-  const value = datetimeInput.value.trim();
-  const pattern = /^(\d{2}):(\d{2}):(\d{4}) (\d{2}):(\d{2})$/;
-
-  if (!pattern.test(value)) {
-    alert("Введите дату в формате ДД:ММ:ГГГГ ЧЧ:ММ");
-    datetimeInput.focus();
-    return;
-  }
-
-  const [, dd, mm, yyyy, hh, min] = value.match(pattern).map(Number);
-  if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 2024 || yyyy > 2029 || hh > 23 || min > 59) {
-    alert("Дата/время вне допустимого диапазона");
-    datetimeInput.focus();
-  }
-});
-
+datetimeInput.addEventListener("input", calculateAndStoreBookingTimes);
 document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);

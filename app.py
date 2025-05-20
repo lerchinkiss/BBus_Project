@@ -184,22 +184,30 @@ def save_order():
         if not vehicle_type or not start_str or not end_str:
             return jsonify({'error': 'Недостаточно данных для проверки автопарка'}), 400
 
+        # Преобразуем строки в datetime
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M")
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M")
         available_count = fleet_info.get(vehicle_type, 1)
 
+        # Загружаем заказы из Google Sheets
         orders_data = sheet.get_all_records()
         df = pd.DataFrame(orders_data)
 
+        # Преобразуем колонки с датами в datetime
+        df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M", errors='coerce')
+        df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M", errors='coerce')
+
+        # Фильтруем пересекающиеся заказы
         overlapping = df[
             (df['ТипТС'] == vehicle_type) &
-            (df['ДатаБрони'] <= end_str.strftime("%Y-%m-%d %H:%M")) &
-            (df['ОкончаниеБрони'] >= start_str)
+            (df['ДатаБрони'] <= end) &
+            (df['ОкончаниеБрони'] >= start)
         ]
 
         if len(overlapping) >= available_count:
             return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
 
+        # Сохраняем заказ
         save_order_data(data)
         return jsonify({'status': 'ok'})
 
