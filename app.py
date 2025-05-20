@@ -194,8 +194,8 @@ def save_order():
         df = pd.DataFrame(orders_data)
 
         # Преобразуем колонки с датами в datetime
-        df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
-        df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
+        df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M", errors='coerce')
+        df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M", errors='coerce')
 
         # Фильтруем пересекающиеся заказы
         overlapping = df[
