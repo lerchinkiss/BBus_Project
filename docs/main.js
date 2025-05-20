@@ -193,14 +193,14 @@ function selectTransport(type) {
 
   // Перевод строки в объект Date
   const [datePart, timePart] = datetimeStr.split(' ');
-  const [dd, mm, yyyy] = datePart.split('.').map(Number);
-  const [hh, min] = timePart.split(':').map(Number);
-  const start = new Date(yyyy, mm - 1, dd, hh, min);
+  const [yyyy, mm, dd] = datePart.split('-').map(Number);
+  const [hh, min, ss] = timePart.split(':').map(Number);
+  const start = new Date(yyyy, mm - 1, dd, hh, min, ss);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
 
   // Форматирование для сохранения
   const pad = n => n.toString().padStart(2, '0');
-  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
   const formattedStart = format(start);
   const formattedEnd = format(end);
   const totalCost = Math.round(pricePerHour * hours);
@@ -243,13 +243,13 @@ function calculateAndStoreBookingTimes() {
   if (!datetimeStr || isNaN(hours)) return;
 
   const [datePart, timePart] = datetimeStr.split(' ');
-  const [dd, mm, yyyy] = datePart.split('.').map(Number);
-  const [hh, min] = timePart.split(':').map(Number);
-  const start = new Date(yyyy, mm - 1, dd, hh, min);
+  const [yyyy, mm, dd] = datePart.split('-').map(Number);
+  const [hh, min, ss] = timePart.split(':').map(Number);
+  const start = new Date(yyyy, mm - 1, dd, hh, min, ss);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
 
   const pad = n => n.toString().padStart(2, '0');
-  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
   const formattedStart = format(start);
   const formattedEnd = format(end);
 
@@ -261,9 +261,9 @@ const datetimeInput = document.getElementById("booking_datetime");
 
 datetimeInput.addEventListener("blur", () => {
   const value = datetimeInput.value.trim();
-  if (!value.match(/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/)) {
-    alert("Неверный формат. Используйте: ДД.ММ.ГГГГ ЧЧ:ММ");
-    datetimeInput.focus();
+  if (!value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
+    // alert("Неверный формат. Используйте: ГГГГ-ММ-ДД ЧЧ:ММ:СС");
+    // datetimeInput.focus();
   }
 });
 
