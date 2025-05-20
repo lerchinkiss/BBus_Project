@@ -1,27 +1,28 @@
-import os
-import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
-# Абсолютный путь до корня проекта
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-ORDERS_FILE = os.path.join(PROJECT_ROOT, 'outputs/web_orders_history.xlsx')
+# Подключение к Google Sheets API
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("google-credentials.json", scope)
+client = gspread.authorize(creds)
+
+# Только ID таблицы, без URL
+SHEET_ID = "1Z-m7fQwpU2_YJ8-HG4AuzSKHt_AD9eZ9D4uXlDH3flc"
+sheet = client.open_by_key(SHEET_ID).sheet1
 
 def save_web_order_data(order_data):
-    os.makedirs(os.path.dirname(ORDERS_FILE), exist_ok=True)
-    order_data['ДатаСоздания'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    new_order_df = pd.DataFrame([order_data])
-
-    if os.path.exists(ORDERS_FILE):
-        existing_df = pd.read_excel(ORDERS_FILE)
-        updated_df = pd.concat([existing_df, new_order_df], ignore_index=True)
-    else:
-        updated_df = new_order_df
-
-    updated_df.to_excel(ORDERS_FILE, index=False)
-
-    print("=== Сохранение нового заказа ===")
-    print("Данные:", order_data)
-    print("Файл сохранения:", ORDERS_FILE)
-    print("Успешно сохранено.")
-    return True
+    row = [
+        order_data.get("company", ""),
+        order_data.get("passengers", ""),
+        order_data.get("price", ""),
+        order_data.get("status", ""),
+        order_data.get("booking_start", ""),
+        order_data.get("booking_end", ""),
+        order_data.get("duration_hours", ""),
+        order_data.get("total_price", ""),
+        order_data.get("type", ""),
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ]
+    sheet.append_row(row)
+    print("Заказ добавлен в Google Таблицу")
