@@ -10,6 +10,8 @@ from src.web.save_order_data import save_web_order_data
 from src.web.save_order_data import sheet
 import pickle
 import time
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__, static_folder='docs')
 CORS(app)
@@ -20,6 +22,16 @@ CACHE_FILE = os.path.join(BASE_DIR, 'outputs/data_cache.pkl')
 ORDERS_FILE = os.path.join(BASE_DIR, 'outputs/web_orders_history.xlsx')
 FLEET_FILE = os.path.join(BASE_DIR, 'docs/fleet.json')
 CACHE_TIMEOUT = 3600
+
+# Авторизация
+json_data = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+with open("temp_google_creds.json", "w") as f:
+    f.write(json_data)
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("temp_google_creds.json", scope)
+client = gspread.authorize(creds)
+sheet = client.open_by_key("1Z-m7fQwpU2_YJ8-HG4AuzSKHt_AD9eZ9D4uXlDH3flc").sheet1
 
 # Загрузка автопарка
 with open(FLEET_FILE, 'r', encoding='utf-8') as f:
@@ -239,10 +251,9 @@ def save_order():
 @app.route('/api/view_orders')
 def view_orders():
     try:
-        if not os.path.exists(ORDERS_FILE):
-            return jsonify({'error': 'Файл не найден'}), 404
-        df = pd.read_excel(ORDERS_FILE)
-        return df.to_json(orient='records', force_ascii=False)
+        # Получаем все строки как список словарей
+        records = sheet.get_all_records()
+        return jsonify(records)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

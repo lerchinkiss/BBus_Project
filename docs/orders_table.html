@@ -85,15 +85,16 @@
         }
         tbody.innerHTML = data.map(order => `
           <tr>
-            <td>${order.company || order.new_company_name || '-'}</td>
-            <td>${order.passengers || '-'}</td>
-            <td>${order.price || '-'}</td>
-            <td>${order.status || '-'}</td>
-            <td>${order['ДатаСоздания'] || '-'}</td>
-            <td>${order.booking_start || '-'}</td>
-            <td>${order.booking_end || '-'}</td>
-            <td>${order.total_price || '-'}</td>
-            <td>${order.vehicle_type || '-'}</td>
+            <td>${order["Заказчик"] || '-'}</td>
+            <td>${order["КоличествоПассажиров"] || '-'}</td>
+            <td>${order["ЦенаЗаЧас"] || '-'}</td>
+            <td>${order["СтатусЗаказа"] || '-'}</td>
+            <td>${order["ДатаБрони"] || '-'}</td>
+            <td>${order["ОкончаниеБрони"] || '-'}</td>
+            <td>${order["КоличествоЧасов"] || '-'}</td>
+            <td>${order["СуммаОплаты"] || '-'}</td>
+            <td>${order["ТипТС"] || '-'}</td>
+            <td>${order["ДатаОформления"] || '-'}</td>
           </tr>
         `).join('');
       })
