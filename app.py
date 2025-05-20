@@ -176,6 +176,7 @@ def recommend():
 def save_order():
     try:
         data = request.json
+        print("Получены данные заказа:", data)
 
         vehicle_type = data.get('vehicle_type')
         start_str = data.get('booking_start')
@@ -188,21 +189,28 @@ def save_order():
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S")
         available_count = fleet_info.get(vehicle_type, 1)
+        print(f"Тип ТС: {vehicle_type}, Доступно машин: {available_count}")
 
         # Загружаем заказы из Google Sheets
         orders_data = sheet.get_all_records()
         df = pd.DataFrame(orders_data)
+        print(f"Всего заказов в таблице: {len(df)}")
 
         # Преобразуем колонки с датами в datetime
-        df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M", errors='coerce')
-        df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M", errors='coerce')
+        df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
+        df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
 
         # Фильтруем пересекающиеся заказы
         overlapping = df[
             (df['ТипТС'] == vehicle_type) &
-            (df['ДатаБрони'] <= end) &
-            (df['ОкончаниеБрони'] >= start)
+            (
+                (df['ДатаБрони'] <= end) & (df['ОкончаниеБрони'] >= start) |  # Пересечение с началом
+                (df['ДатаБрони'] >= start) & (df['ДатаБрони'] <= end) |  # Пересечение с концом
+                (df['ОкончаниеБрони'] >= start) & (df['ОкончаниеБрони'] <= end)  # Полное включение
+            )
         ]
+        print(f"Найдено пересекающихся заказов: {len(overlapping)}")
+        print("Пересекающиеся заказы:", overlapping[['ТипТС', 'ДатаБрони', 'ОкончаниеБрони']].to_dict('records'))
 
         if len(overlapping) >= available_count:
             return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
@@ -212,6 +220,7 @@ def save_order():
         return jsonify({'status': 'ok'})
 
     except Exception as e:
+        print(f"Ошибка при сохранении заказа: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/view_orders')
