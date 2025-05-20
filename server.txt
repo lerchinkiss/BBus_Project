@@ -3,4 +3,6 @@ catboost
 pandas
 openpyxl
 gunicorn
-flask-cors 
+flask-cors
+gspread
+oauth2client
