@@ -192,7 +192,7 @@ function selectTransport(type) {
   }
 
   // Перевод строки в объект Date
-  const [datePart, timePart] = datetimeStr.split(' ');
+  const [datePart, timePart] = datetimeStr.split('T');
   const [dd, mm, yyyy] = datePart.split(':').map(Number);
   const [hh, min] = timePart.split(':').map(Number);
   const start = new Date(yyyy, mm - 1, dd, hh, min);
@@ -242,7 +242,7 @@ function calculateAndStoreBookingTimes() {
   const hours = parseFloat(document.getElementById("hours").value);
   if (!datetimeStr || isNaN(hours)) return;
 
-  const [datePart, timePart] = datetimeStr.split(' ');
+  const [datePart, timePart] = datetimeStr.split('T');
   const [dd, mm, yyyy] = datePart.split(':').map(Number);
   const [hh, min] = timePart.split(':').map(Number);
   const start = new Date(yyyy, mm - 1, dd, hh, min);
