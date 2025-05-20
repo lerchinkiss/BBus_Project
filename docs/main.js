@@ -259,12 +259,12 @@ function calculateAndStoreBookingTimes() {
 
 const datetimeInput = document.getElementById("booking_datetime");
 
-datetimeInput.addEventListener("input", () => {
-  let raw = datetimeInput.value.replace(/[^\d: ]/g, '');
-
-  if (raw.length === 2 || raw.length === 5) raw += ':';
-  if (raw.length === 10) raw += ' ';
-  datetimeInput.value = raw;
+datetimeInput.addEventListener("blur", () => {
+  const value = datetimeInput.value.trim();
+  if (!value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+    alert("Неверный формат. Используйте: ГГГГ-ММ-ДДTЧЧ:ММ");
+    datetimeInput.focus();
+  }
 });
 
 datetimeInput.addEventListener("input", calculateAndStoreBookingTimes);
