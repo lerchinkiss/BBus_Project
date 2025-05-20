@@ -128,7 +128,6 @@ function validatePassengers(input) {
 document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
 
-
   const company = input.value;
   const status = document.getElementById('status').value;
   const passengers = parseInt(document.getElementById('passengers').value);
@@ -177,6 +176,7 @@ function selectTransport(type) {
     msg.textContent = `Вы выбрали: ${type}`;
   }
 
+  // Собираем данные из формы
   const company = input.value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
@@ -185,13 +185,20 @@ function selectTransport(type) {
   const newCompanyName = newCompanyInput.value;
   const datetimeStr = document.getElementById("booking_datetime").value;
 
+  // Проверка на заполненность всех обязательных полей
   if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
     alert('Пожалуйста, заполните все поля корректно перед выбором ТС.');
     return;
   }
 
-  const start = new Date(datetimeStr);
+  // Перевод строки в объект Date
+  const [datePart, timePart] = datetimeStr.split(' ');
+  const [dd, mm, yyyy] = datePart.split(':').map(Number);
+  const [hh, min] = timePart.split(':').map(Number);
+  const start = new Date(yyyy, mm - 1, dd, hh, min);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+
+  // Форматирование для сохранения
   const pad = n => n.toString().padStart(2, '0');
   const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
   const formattedStart = format(start);
@@ -235,8 +242,12 @@ function calculateAndStoreBookingTimes() {
   const hours = parseFloat(document.getElementById("hours").value);
   if (!datetimeStr || isNaN(hours)) return;
 
-  const start = new Date(datetimeStr);
+  const [datePart, timePart] = datetimeStr.split(' ');
+  const [dd, mm, yyyy] = datePart.split(':').map(Number);
+  const [hh, min] = timePart.split(':').map(Number);
+  const start = new Date(yyyy, mm - 1, dd, hh, min);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+
   const pad = n => n.toString().padStart(2, '0');
   const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
   const formattedStart = format(start);
@@ -247,5 +258,30 @@ function calculateAndStoreBookingTimes() {
 }
 
 const datetimeInput = document.getElementById("booking_datetime");
-datetimeInput.addEventListener("input", calculateAndStoreBookingTimes);
+
+datetimeInput.addEventListener("input", () => {
+  let raw = datetimeInput.value.replace(/[^\d: ]/g, '');
+
+  if (raw.length === 2 || raw.length === 5) raw += ':';
+  if (raw.length === 10) raw += ' ';
+  datetimeInput.value = raw;
+});
+
+datetimeInput.addEventListener("blur", () => {
+  const value = datetimeInput.value.trim();
+  const pattern = /^(\d{2}):(\d{2}):(\d{4}) (\d{2}):(\d{2})$/;
+
+  if (!pattern.test(value)) {
+    alert("Введите дату в формате ДД:ММ:ГГГГ ЧЧ:ММ");
+    datetimeInput.focus();
+    return;
+  }
+
+  const [, dd, mm, yyyy, hh, min] = value.match(pattern).map(Number);
+  if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 2024 || yyyy > 2029 || hh > 23 || min > 59) {
+    alert("Дата/время вне допустимого диапазона");
+    datetimeInput.focus();
+  }
+});
+
 document.getElementById("hours").addEventListener("input", calculateAndStoreBookingTimes);

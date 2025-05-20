@@ -55,18 +55,19 @@
     <thead>
       <tr>
         <th>Компания</th>
-        <th>Кол-во пассажиров</th>
+        <th>Количество пассажиров</th>
         <th>Цена за час</th>
-        <th>Тип</th>
-        <th>Дата создания</th>
+        <th>Статус заказа</th>
         <th>Дата бронирования</th>
         <th>Окончание брони</th>
+        <th>Количество часов</th>
         <th>Сумма оплаты</th>
         <th>Тип ТС</th>
+        <th>Дата создания заказа</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="9">Загрузка...</td></tr>
+      <tr><td colspan="10">Загрузка...</td></tr>
     </tbody>
   </table>
 
@@ -80,7 +81,7 @@
       .then(data => {
         const tbody = document.querySelector('#orders-table tbody');
         if (!data || !data.length) {
-          tbody.innerHTML = '<tr><td colspan="9">Нет данных</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10">Нет данных</td></tr>';
           return;
         }
         tbody.innerHTML = data.map(order => `
@@ -99,7 +100,7 @@
         `).join('');
       })
       .catch(err => {
-        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="9">Ошибка загрузки</td></tr>`;
+        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="10">Ошибка загрузки</td></tr>`;
         console.error('Ошибка:', err);
       });
   </script>
