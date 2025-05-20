@@ -226,6 +226,4 @@ def view_orders():
 def download_orders():
     return jsonify({'error': 'Функция выгрузки отключена при использовании Google Sheets.'}), 501
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+
