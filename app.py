@@ -6,12 +6,9 @@ import json
 from datetime import datetime
 from catboost import CatBoostClassifier, Pool
 from link_tables import apply_links
-from src.web.save_order_data import save_web_order_data
-from src.web.save_order_data import sheet
+from src.web.save_order_data import save_order_data, sheet
 import pickle
 import time
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__, static_folder='docs')
 CORS(app)
@@ -19,23 +16,14 @@ CORS(app)
 # Абсолютные пути
 BASE_DIR = os.path.dirname(__file__)
 CACHE_FILE = os.path.join(BASE_DIR, 'outputs/data_cache.pkl')
-ORDERS_FILE = os.path.join(BASE_DIR, 'outputs/web_orders_history.xlsx')
 FLEET_FILE = os.path.join(BASE_DIR, 'docs/fleet.json')
 CACHE_TIMEOUT = 3600
-
-# Авторизация
-json_data = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-with open("temp_google_creds.json", "w") as f:
-    f.write(json_data)
-
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("temp_google_creds.json", scope)
-client = gspread.authorize(creds)
-sheet = client.open_by_key("1Z-m7fQwpU2_YJ8-HG4AuzSKHt_AD9eZ9D4uXlDH3flc").sheet1
 
 # Загрузка автопарка
 with open(FLEET_FILE, 'r', encoding='utf-8') as f:
     fleet_info = json.load(f)
+
+# Кэш
 
 def save_to_cache(data):
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
@@ -53,34 +41,33 @@ def load_from_cache():
         pass
     return None
 
+# Загрузка модели
 print("Загрузка модели...")
 model = CatBoostClassifier()
 model_path = os.path.abspath("outputs/models/catboost_typets_model_v3.cbm")
-print("Загружаем модель из:", model_path)
+print("Загружаем модель", model_path)
 model.load_model(model_path)
 
+# Загрузка данных
+orders_df, customer_profile, type_ts_mapping = (None, None, None)
+
 def load_data():
-    print("Начинаем загрузку данных...")
+    global orders_df, customer_profile, type_ts_mapping
     cached_data = load_from_cache()
-    if cached_data is not None:
-        print("Данные загружены из кэша")
-        return cached_data
+    if cached_data:
+        print("Данные из кэша")
+        orders_df, customer_profile, type_ts_mapping = cached_data
+        return
 
-    try:
-        orders_df = pd.read_excel(os.path.join("data/filtered_datasets", "bbOrders_filtered.xlsx"))
-        orders_df = apply_links(orders_df)
-        customer_profile = pd.read_excel(os.path.join("data/prepared_data", "customer_profile.xlsx"))
-        type_ts_df = pd.read_excel(os.path.join("data/filtered_datasets", "uatTypeTS_filtered.xlsx"))
-        type_ts_df = type_ts_df.dropna(subset=['Description', 'МаксМест'])
-        type_ts_mapping = dict(zip(type_ts_df['Description'], type_ts_df['МаксМест']))
-        data = (orders_df, customer_profile, type_ts_mapping)
-        save_to_cache(data)
-        return data
-    except Exception as e:
-        print(f"Ошибка при загрузке данных: {str(e)}")
-        raise
+    orders_df = pd.read_excel("data/filtered_datasets/bbOrders_filtered.xlsx")
+    orders_df = apply_links(orders_df)
+    customer_profile = pd.read_excel("data/prepared_data/customer_profile.xlsx")
+    type_ts_df = pd.read_excel("data/filtered_datasets/uatTypeTS_filtered.xlsx")
+    type_ts_df = type_ts_df.dropna(subset=['Description', 'МаксМест'])
+    type_ts_mapping = dict(zip(type_ts_df['Description'], type_ts_df['МаксМест']))
+    save_to_cache((orders_df, customer_profile, type_ts_mapping))
 
-orders_df, customer_profile, type_ts_mapping = load_data()
+load_data()
 
 @app.route('/')
 def index():
@@ -89,9 +76,9 @@ def index():
 @app.route('/api/companies')
 def get_companies():
     try:
-        unique_companies = orders_df['Заказчик'].dropna().unique().tolist()
-        unique_companies.sort()
-        return jsonify(unique_companies)
+        companies = orders_df['Заказчик'].dropna().unique().tolist()
+        companies.sort()
+        return jsonify(companies)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -100,14 +87,13 @@ def get_customer_profile(company):
     try:
         profile_row = customer_profile[customer_profile['Заказчик'] == company]
         if not profile_row.empty:
-            profile = {
+            return jsonify({
                 'любимый_тип_тс': profile_row['ЛюбимыйТипТС'].values[0],
                 'исторический_любимый_тс': profile_row['ИсторическийЛюбимыйТС'].values[0],
                 'любимый_статус_заказа': profile_row['ЛюбимыйСтатусЗаказа'].values[0],
                 'среднее_пассажиров': float(orders_df[orders_df['Заказчик'] == company]['КоличествоПассажиров'].mean()),
                 'всего_заказов': int(orders_df[orders_df['Заказчик'] == company].shape[0])
-            }
-            return jsonify(profile)
+            })
         return jsonify({'error': 'Профиль не найден'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -141,14 +127,9 @@ def recommend():
         тип_заказа = data['status']
 
         profile_row = customer_profile[customer_profile['Заказчик'] == заказчик]
-        if not profile_row.empty:
-            любимый_тип_тс = profile_row['ЛюбимыйТипТС'].values[0]
-            исторический_любимый_тс = profile_row['ИсторическийЛюбимыйТС'].values[0]
-            любимый_статус_заказа = profile_row['ЛюбимыйСтатусЗаказа'].values[0]
-        else:
-            любимый_тип_тс = 'Неизвестно'
-            исторический_любимый_тс = 'Неизвестно'
-            любимый_статус_заказа = 'Неизвестно'
+        любимый_тип_тс = profile_row['ЛюбимыйТипТС'].values[0] if not profile_row.empty else 'Неизвестно'
+        исторический_любимый_тс = profile_row['ИсторическийЛюбимыйТС'].values[0] if not profile_row.empty else 'Неизвестно'
+        любимый_статус_заказа = profile_row['ЛюбимыйСтатусЗаказа'].values[0] if not profile_row.empty else 'Неизвестно'
 
         input_data = pd.DataFrame([{
             'Заказчик': заказчик,
@@ -160,9 +141,7 @@ def recommend():
             'ЛюбимыйСтатусЗаказа': любимый_статус_заказа
         }])
 
-        pool = Pool(input_data,
-                    cat_features=['Заказчик', 'ТипЗаказа', 'ЛюбимыйТипТС', 'ИсторическийЛюбимыйТС', 'ЛюбимыйСтатусЗаказа'])
-
+        pool = Pool(input_data, cat_features=['Заказчик', 'ТипЗаказа', 'ЛюбимыйТипТС', 'ИсторическийЛюбимыйТС', 'ЛюбимыйСтатусЗаказа'])
         probs = model.predict_proba(pool)[0]
         top_indices = probs.argsort()[-10:][::-1]
 
@@ -189,23 +168,6 @@ def recommend():
             if len(recommendations) == 3:
                 break
 
-        historical_matches = orders_df[
-            (orders_df['КоличествоПассажиров'] >= min_capacity) &
-            (orders_df['КоличествоПассажиров'] <= max_capacity)
-        ]
-        if not historical_matches.empty:
-            top_historical = historical_matches['ТипТС'].value_counts().head(3).index.tolist()
-            for ref in top_historical:
-                if all(r['type'] != ref for r in recommendations):
-                    capacity = type_ts_mapping.get(ref, 999)
-                    recommendations.append({
-                        'type': ref,
-                        'probability': 0.0,
-                        'capacity': int(capacity)
-                    })
-                    if len(recommendations) == 3:
-                        break
-
         return jsonify(recommendations)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -226,32 +188,27 @@ def save_order():
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M")
         available_count = fleet_info.get(vehicle_type, 1)
 
-        # Загрузка заказов из Google Sheets
         orders_data = sheet.get_all_records()
         df = pd.DataFrame(orders_data)
 
-        # Фильтрация по пересечению
         overlapping = df[
-            (df['vehicle_type'] == vehicle_type) &
-            (df['booking_start'] <= end_str) &
-            (df['booking_end'] >= start_str)
+            (df['ТипТС'] == vehicle_type) &
+            (df['ДатаБрони'] <= end_str.strftime("%Y-%m-%d %H:%M")) &
+            (df['ОкончаниеБрони'] >= start_str)
         ]
 
         if len(overlapping) >= available_count:
             return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
 
-        # Сохраняем в Google Таблицу
-        save_web_order_data(data)
+        save_order_data(data)
         return jsonify({'status': 'ok'})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/api/view_orders')
 def view_orders():
     try:
-        # Получаем все строки как список словарей
         records = sheet.get_all_records()
         return jsonify(records)
     except Exception as e:
@@ -259,16 +216,7 @@ def view_orders():
 
 @app.route('/api/download_orders')
 def download_orders():
-    try:
-        if os.path.exists(ORDERS_FILE):
-            return send_from_directory(
-                directory=os.path.dirname(ORDERS_FILE),
-                path=os.path.basename(ORDERS_FILE),
-                as_attachment=True
-            )
-        return jsonify({'error': 'Файл не найден'}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'error': 'Функция выгрузки отключена при использовании Google Sheets.'}), 501
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
