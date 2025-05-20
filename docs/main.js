@@ -192,8 +192,8 @@ function selectTransport(type) {
   }
 
   // Перевод строки в объект Date
-  const [datePart, timePart] = datetimeStr.split('T');
-  const [dd, mm, yyyy] = datePart.split(':').map(Number);
+  const [datePart, timePart] = datetimeStr.split(' ');
+  const [dd, mm, yyyy] = datePart.split('.').map(Number);
   const [hh, min] = timePart.split(':').map(Number);
   const start = new Date(yyyy, mm - 1, dd, hh, min);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
@@ -242,8 +242,8 @@ function calculateAndStoreBookingTimes() {
   const hours = parseFloat(document.getElementById("hours").value);
   if (!datetimeStr || isNaN(hours)) return;
 
-  const [datePart, timePart] = datetimeStr.split('T');
-  const [dd, mm, yyyy] = datePart.split(':').map(Number);
+  const [datePart, timePart] = datetimeStr.split(' ');
+  const [dd, mm, yyyy] = datePart.split('.').map(Number);
   const [hh, min] = timePart.split(':').map(Number);
   const start = new Date(yyyy, mm - 1, dd, hh, min);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
@@ -261,8 +261,8 @@ const datetimeInput = document.getElementById("booking_datetime");
 
 datetimeInput.addEventListener("blur", () => {
   const value = datetimeInput.value.trim();
-  if (!value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
-    alert("Неверный формат. Используйте: ГГГГ-ММ-ДДTЧЧ:ММ");
+  if (!value.match(/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/)) {
+    alert("Неверный формат. Используйте: ДД.ММ.ГГГГ ЧЧ:ММ");
     datetimeInput.focus();
   }
 });
