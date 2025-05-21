@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ заказов - BBus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+        }
+        .nav-links {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .nav-links a {
+            display: inline-block;
+            background-color: #800000;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: background-color 0.3s ease;
+        }
+        .nav-links a:hover {
+            background-color: #a00000;
+            text-decoration: none;
+        }
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+        .chart-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="bbus_logo.png" alt="BBus Logo">
+            <h1>Анализ заказов</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">Вернуть на главную</a>
+            <a href="orders_table.html">Таблица заказов</a>
+        </div>
+
+        <div class="section-title">Анализ популярности</div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h3>Топ-10 типов ТС</h3>
+                    <div id="topVehiclesChart"></div>
+                    <div class="chart-description">
+                        График показывает наиболее популярные типы транспортных средств. 
+                        Используйте эту информацию для оптимизации автопарка и планирования закупок.
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h3>Топ-10 заказчиков</h3>
+                    <div id="topCustomersChart"></div>
+                    <div class="chart-description">
+                        График отображает самых активных клиентов. 
+                        Помогает в работе с VIP-клиентами и планировании программ лояльности.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Временной анализ</div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h3>Динамика заказов по месяцам</h3>
+                    <div id="monthlyOrdersChart"></div>
+                    <div class="chart-description">
+                        График показывает сезонность заказов. 
+                        Используйте для планирования загрузки и прогнозирования пиковых периодов.
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <h3>Пиковые часы заказов</h3>
+                    <div id="hourlyOrdersChart"></div>
+                    <div class="chart-description">
+                        График отображает распределение заказов по часам. 
+                        Помогает оптимизировать график работы и распределение ресурсов.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Анализ эффективности</div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h3>Корреляция: пассажиры и цена</h3>
+                    <div id="pricePassengersChart"></div>
+                    <div class="chart-description">
+                        График показывает зависимость между количеством пассажиров и ценой. 
+                        Помогает оптимизировать ценообразование и выявлять нестандартные заказы.
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h3>Частота заказов по заказчикам</h3>
+                    <div id="customerFrequencyChart"></div>
+                    <div class="chart-description">
+                        График отображает регулярность заказов по клиентам. 
+                        Помогает в прогнозировании загрузки и выявлении постоянных клиентов.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для загрузки данных с сервера
+        async function loadData() {
+            try {
+                const response = await fetch('/api/analysis_data');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Ошибка при загрузке данных:', error);
+                return null;
+            }
+        }
+
+        // Функция для создания графиков
+        function createCharts(data) {
+            // График топ типов ТС
+            const topVehiclesData = [{
+                x: data.topVehicles.map(item => item.type),
+                y: data.topVehicles.map(item => item.count),
+                type: 'bar',
+                marker: {
+                    color: 'rgb(55, 83, 109)'
+                }
+            }];
+
+            const topVehiclesLayout = {
+                title: 'Топ-10 типов ТС по заказам',
+                xaxis: {
+                    title: 'Тип ТС',
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Количество заказов'
+                }
+            };
+
+            Plotly.newPlot('topVehiclesChart', topVehiclesData, topVehiclesLayout);
+
+            // График топ заказчиков
+            const topCustomersData = [{
+                x: data.topCustomers.map(item => item.customer),
+                y: data.topCustomers.map(item => item.count),
+                type: 'bar',
+                marker: {
+                    color: 'rgb(26, 118, 255)'
+                }
+            }];
+
+            const topCustomersLayout = {
+                title: 'Топ-10 заказчиков',
+                xaxis: {
+                    title: 'Заказчик',
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Количество заказов'
+                }
+            };
+
+            Plotly.newPlot('topCustomersChart', topCustomersData, topCustomersLayout);
+
+            // График динамики заказов по месяцам
+            const monthlyOrdersData = [{
+                x: data.monthlyOrders.map(item => item.month),
+                y: data.monthlyOrders.map(item => item.count),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Количество заказов',
+                line: {
+                    color: 'rgb(75, 192, 192)',
+                    width: 3
+                },
+                marker: {
+                    size: 8
+                }
+            }];
+
+            const monthlyOrdersLayout = {
+                title: 'Динамика заказов по месяцам',
+                xaxis: {
+                    title: 'Месяц'
+                },
+                yaxis: {
+                    title: 'Количество заказов'
+                }
+            };
+
+            Plotly.newPlot('monthlyOrdersChart', monthlyOrdersData, monthlyOrdersLayout);
+
+            // График пиковых часов
+            const hourlyOrdersData = [{
+                x: data.hourlyOrders.map(item => item.hour),
+                y: data.hourlyOrders.map(item => item.count),
+                type: 'bar',
+                marker: {
+                    color: 'rgb(255, 127, 14)'
+                }
+            }];
+
+            const hourlyOrdersLayout = {
+                title: 'Распределение заказов по часам',
+                xaxis: {
+                    title: 'Час',
+                    tickmode: 'linear'
+                },
+                yaxis: {
+                    title: 'Количество заказов'
+                }
+            };
+
+            Plotly.newPlot('hourlyOrdersChart', hourlyOrdersData, hourlyOrdersLayout);
+
+            // График корреляции пассажиров и цены
+            const pricePassengersData = [{
+                x: data.pricePassengers.map(item => item.КоличествоПассажиров),
+                y: data.pricePassengers.map(item => item.ЦенаЗаЧас),
+                type: 'scatter',
+                mode: 'markers',
+                marker: {
+                    color: 'rgb(128, 0, 0)',
+                    size: 8,
+                    opacity: 0.6
+                }
+            }];
+
+            const pricePassengersLayout = {
+                title: 'Зависимость цены от количества пассажиров',
+                xaxis: {
+                    title: 'Количество пассажиров'
+                },
+                yaxis: {
+                    title: 'Цена за час'
+                }
+            };
+
+            Plotly.newPlot('pricePassengersChart', pricePassengersData, pricePassengersLayout);
+
+            // График частоты заказов по заказчикам
+            const customerFrequencyData = [{
+                x: data.customerFrequency.map(item => item.customer),
+                y: data.customerFrequency.map(item => item.order_count),
+                type: 'bar',
+                marker: {
+                    color: 'rgb(46, 137, 205)'
+                }
+            }];
+
+            const customerFrequencyLayout = {
+                title: 'Частота заказов по заказчикам',
+                xaxis: {
+                    title: 'Заказчик',
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Количество заказов'
+                }
+            };
+
+            Plotly.newPlot('customerFrequencyChart', customerFrequencyData, customerFrequencyLayout);
+        }
+
+        // Загрузка данных и создание графиков при загрузке страницы
+        window.onload = async function() {
+            const data = await loadData();
+            if (data) {
+                createCharts(data);
+            }
+        };
+    </script>
+</body>
+</html>
