@@ -184,6 +184,8 @@ function selectTransport(type) {
   const status = document.getElementById('status').value;
   const newCompanyName = newCompanyInput.value;
   const datetimeStr = document.getElementById("booking_datetime").value;
+  const routeFrom = document.getElementById('route-from').value;
+  const routeTo = document.getElementById('route-to').value;
 
   // Проверка на заполненность всех обязательных полей
   if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
@@ -215,7 +217,9 @@ function selectTransport(type) {
     booking_end: formattedEnd,
     duration_hours: hours,
     total_price: totalCost,
-    vehicle_type: selectedTransportType
+    vehicle_type: selectedTransportType,
+    route_from: routeFrom,
+    route_to: routeTo
   };
 
   fetch('https://bbus-project.onrender.com/api/save_order', {
@@ -230,7 +234,7 @@ function selectTransport(type) {
       return response.json();
     })
     .then(() => {
-      alert('Заказ успешно сохранён!');
+      alert('Заказ успешно сохранен');
     })
     .catch(err => {
       alert(`Ошибка: ${err.message}`);

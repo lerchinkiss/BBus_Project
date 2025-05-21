@@ -38,7 +38,9 @@ def save_order_data(order_data):
             order_data.get("duration_hours", ""),
             order_data.get("total_price", ""),
             order_data.get("vehicle_type", "") or order_data.get("type", ""),
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            order_data.get("route_from", ""),
+            order_data.get("route_to", "")
         ]
         sheet.append_row(row)
         print("Заказ добавлен в Google Таблицу")
