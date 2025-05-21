@@ -230,6 +230,55 @@ def view_orders():
         return jsonify(records)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/analysis_data')
+def get_analysis_data():
+    try:
+        # Топ типов ТС
+        top_vehicles = orders_df['ТипТС'].value_counts().head(10).reset_index()
+        top_vehicles.columns = ['type', 'count']
+        top_vehicles = top_vehicles.to_dict('records')
+
+        # Топ заказчиков
+        top_customers = orders_df['Заказчик'].value_counts().head(10).reset_index()
+        top_customers.columns = ['customer', 'count']
+        top_customers = top_customers.to_dict('records')
+
+        # Динамика заказов по месяцам
+        orders_df['Месяц'] = pd.to_datetime(orders_df['Date']).dt.strftime('%Y-%m')
+        monthly_orders = orders_df.groupby('Месяц').size().reset_index()
+        monthly_orders.columns = ['month', 'count']
+        monthly_orders = monthly_orders.to_dict('records')
+
+        # Корреляция пассажиров и цены
+        price_passengers = orders_df[['КоличествоПассажиров', 'ЦенаЗаЧас']].dropna().to_dict('records')
+
+        # Пиковые часы заказов
+        orders_df['Час'] = pd.to_datetime(orders_df['Date']).dt.hour
+        hourly_orders = orders_df.groupby('Час').size().reset_index()
+        hourly_orders.columns = ['hour', 'count']
+        hourly_orders = hourly_orders.to_dict('records')
+
+        # Частота заказов по заказчикам
+        customer_frequency = orders_df.groupby('Заказчик').agg({
+            'Date': 'count',
+            'КоличествоПассажиров': 'mean',
+            'ЦенаЗаЧас': 'mean'
+        }).reset_index()
+        customer_frequency.columns = ['customer', 'order_count', 'avg_passengers', 'avg_price']
+        customer_frequency = customer_frequency.sort_values('order_count', ascending=False).head(10)
+        customer_frequency = customer_frequency.to_dict('records')
+
+        return jsonify({
+            'topVehicles': top_vehicles,
+            'topCustomers': top_customers,
+            'monthlyOrders': monthly_orders,
+            'pricePassengers': price_passengers,
+            'hourlyOrders': hourly_orders,
+            'customerFrequency': customer_frequency
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/download_orders')
 def download_orders():
