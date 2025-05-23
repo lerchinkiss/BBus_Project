@@ -145,31 +145,41 @@ def recommend():
         probs = model.predict_proba(pool)[0]
         top_indices = probs.argsort()[-10:][::-1]
 
-        def define_range(passengers):
-            if passengers <= 4: return (1, 4)
-            elif passengers <= 8: return (5, 8)
-            elif passengers <= 20: return (9, 20)
-            elif passengers <= 50: return (21, 50)
-            else: return (51, 100)
-
-        min_capacity, max_capacity = define_range(количество_пассажиров)
         recommendations = []
 
-        # Добавляем любимый тип, если он подходит
-        if любимый_тип_тс:
-            preferred_capacity = type_ts_mapping.get(любимый_тип_тс)
-            if preferred_capacity and min_capacity <= preferred_capacity <= max_capacity:
-                recommendations.append({
-                    'type': любимый_тип_тс,
-                    'probability': 0.0,
-                    'capacity': int(preferred_capacity),
-                    'preferred': True
-                })
+        # Проверка вместимости любимого ТС
+        def define_range(passengers):
+            if passengers <= 4:
+                return (1, 4)
+            elif passengers <= 8:
+                return (5, 8)
+            elif passengers <= 20:
+                return (9, 20)
+            elif passengers <= 50:
+                return (21, 50)
+            else:
+                return (51, 100)
 
+        min_capacity, max_capacity = define_range(количество_пассажиров)
+
+        # Добавляем любимый тип ТС в начало
+        if любимый_тип_тс and любимый_тип_тс != 'Неизвестно':
+            capacity = type_ts_mapping.get(любимый_тип_тс, 999)
+            is_valid = min_capacity <= capacity <= max_capacity
+            recommendations.append({
+                'type': любимый_тип_тс,
+                'probability': 1.0,
+                'capacity': int(capacity),
+                'preferred': True,
+                'valid_capacity': is_valid
+            })
+
+        # Остальные по модели
         for idx in top_indices:
             ref = model.classes_[idx]
             if ref == любимый_тип_тс:
-                continue  # уже добавлен
+                continue
+
             probability = probs[idx]
             capacity = type_ts_mapping.get(ref, 999)
             if min_capacity <= capacity <= max_capacity:
@@ -177,9 +187,10 @@ def recommend():
                     'type': ref,
                     'probability': float(probability),
                     'capacity': int(capacity),
-                    'preferred': False
+                    'preferred': False,
+                    'valid_capacity': True
                 })
-            if len(recommendations) >= 3:
+            if len(recommendations) >= 4:
                 break
 
         return jsonify(recommendations)

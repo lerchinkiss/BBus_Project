@@ -156,8 +156,13 @@ document.getElementById('submit-button').onclick = function (e) {
         html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
       } else {
         recommendations.forEach(rec => {
-          const tag = rec.preferred ? ' <span style="color: green;">(Предпочтение)</span>' : '';
-          const style = rec.preferred ? 'border: 2px solid green; padding: 10px;' : '';
+          const tag = rec.preferred
+            ? rec.valid_capacity
+              ? ' <span style="color: green;">(Предпочтение)</span>'
+              : ' <span style="color: orange;">(Предпочтение, вместимость не подходит)</span>'
+            : '';
+
+          const style = rec.preferred ? 'border: 2px solid #800000; padding: 10px;' : '';
 
           html += `
             <div class="recommendation" style="${style}">
