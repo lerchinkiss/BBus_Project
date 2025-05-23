@@ -127,7 +127,7 @@ def recommend():
         тип_заказа = data['status']
 
         profile_row = customer_profile[customer_profile['Заказчик'] == заказчик]
-        любимый_тип_тс = profile_row['ЛюбимыйТипТС'].values[0] if not profile_row.empty else 'Неизвестно'
+        любимый_тип_тс = profile_row['ЛюбимыйТипТС'].values[0] if not profile_row.empty else None
         исторический_любимый_тс = profile_row['ИсторическийЛюбимыйТС'].values[0] if not profile_row.empty else 'Неизвестно'
         любимый_статус_заказа = profile_row['ЛюбимыйСтатусЗаказа'].values[0] if not profile_row.empty else 'Неизвестно'
 
@@ -136,7 +136,7 @@ def recommend():
             'КоличествоПассажиров': количество_пассажиров,
             'ЦенаЗаЧас': цена_за_час,
             'ТипЗаказа': тип_заказа,
-            'ЛюбимыйТипТС': любимый_тип_тс,
+            'ЛюбимыйТипТС': любимый_тип_тс or 'Неизвестно',
             'ИсторическийЛюбимыйТС': исторический_любимый_тс,
             'ЛюбимыйСтатусЗаказа': любимый_статус_заказа
         }])
@@ -155,20 +155,35 @@ def recommend():
         min_capacity, max_capacity = define_range(количество_пассажиров)
         recommendations = []
 
+        # Добавляем любимый тип, если он подходит
+        if любимый_тип_тс:
+            preferred_capacity = type_ts_mapping.get(любимый_тип_тс)
+            if preferred_capacity and min_capacity <= preferred_capacity <= max_capacity:
+                recommendations.append({
+                    'type': любимый_тип_тс,
+                    'probability': 0.0,
+                    'capacity': int(preferred_capacity),
+                    'preferred': True
+                })
+
         for idx in top_indices:
             ref = model.classes_[idx]
+            if ref == любимый_тип_тс:
+                continue  # уже добавлен
             probability = probs[idx]
             capacity = type_ts_mapping.get(ref, 999)
             if min_capacity <= capacity <= max_capacity:
                 recommendations.append({
                     'type': ref,
                     'probability': float(probability),
-                    'capacity': int(capacity)
+                    'capacity': int(capacity),
+                    'preferred': False
                 })
-            if len(recommendations) == 3:
+            if len(recommendations) >= 3:
                 break
 
         return jsonify(recommendations)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

@@ -156,9 +156,12 @@ document.getElementById('submit-button').onclick = function (e) {
         html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
       } else {
         recommendations.forEach(rec => {
+          const tag = rec.preferred ? ' <span style="color: green;">(Предпочтение)</span>' : '';
+          const style = rec.preferred ? 'border: 2px solid green; padding: 10px;' : '';
+
           html += `
-            <div class="recommendation">
-              <p><strong>${rec.type}</strong> (вместимость: ${rec.capacity} мест)</p>
+            <div class="recommendation" style="${style}">
+              <p><strong>${rec.type}</strong>${tag} (вместимость: ${rec.capacity} мест)</p>
               <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
               <button class="select-btn" onclick="selectTransport('${rec.type}')">Выбрать</button>
             </div>`;
