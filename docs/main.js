@@ -182,6 +182,25 @@ document.getElementById('submit-button').onclick = function (e) {
     return;
   }
 
+  const datetimeStr = document.getElementById("booking_datetime").value;
+  const hours = parseFloat(document.getElementById("hours").value);
+
+  let booking_start = "";
+  let booking_end = "";
+
+  if (datetimeStr && !isNaN(hours)) {
+    const [datePart, timePart] = datetimeStr.split(' ');
+    const [yyyy, mm, dd] = datePart.split('-').map(Number);
+    const [hh, min, ss] = timePart.split(':').map(Number);
+    const start = new Date(yyyy, mm - 1, dd, hh, min, ss);
+    const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+
+    const pad = n => n.toString().padStart(2, '0');
+    const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+    booking_start = format(start);
+    booking_end = format(end);
+  }
+
   fetch('https://bbus-project.onrender.com/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -189,7 +208,9 @@ document.getElementById('submit-button').onclick = function (e) {
       company,
       passengers,
       price: pricePerHour,
-      status
+      status,
+      booking_start: booking_start,
+      booking_end: booking_end
     })
   })
     .then(response => response.json())
@@ -224,6 +245,11 @@ document.getElementById('submit-button').onclick = function (e) {
               </div>`;
           }
         });
+        if (!recommendations.some(r => r.available)) {
+          html += `<div style="margin-top: 20px; background-color: #fff0f0; padding: 10px; border-left: 4px solid #800000; color: #800000; font-weight: bold;">
+            Все подходящие ТС заняты. Рассмотрите возможность разделения пассажиров на несколько ТС.
+          </div>`;
+        }
         html += `<p id="selected-transport-msg" style="margin-top: 10px; font-weight: bold; color: green;"></p>`;
       }
       box.innerHTML = html;

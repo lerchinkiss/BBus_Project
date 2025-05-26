@@ -27,7 +27,10 @@ def save_order_data(order_data):
         # Используем даты напрямую, так как они уже в нужном формате
         booking_start = order_data.get("booking_start", "")
         booking_end = order_data.get("booking_end", "")
-        
+
+        if order_data.get("wants_preferred_type") and order_data.get("vehicle_type") != order_data.get("wants_preferred_type"):
+            print(f"Предпочтительный ТС ({order_data['wants_preferred_type']}) занят. Выбран другой: {order_data['vehicle_type']}")
+
         row = [
             order_data.get("company", ""),
             order_data.get("passengers", ""),
