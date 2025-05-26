@@ -66,10 +66,12 @@
         <th>Дата создания заказа</th>
         <th>Маршрут ОТ</th>
         <th>Маршрут ДО</th>
+        <th>Пожелание</th>
+        <th>Контакт</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="12">Загрузка...</td></tr>
+      <tr><td colspan="14">Загрузка...</td></tr>
     </tbody>
   </table>
 
@@ -83,7 +85,7 @@
       .then(data => {
         const tbody = document.querySelector('#orders-table tbody');
         if (!data || !data.length) {
-          tbody.innerHTML = '<tr><td colspan="12">Нет данных</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="14">Нет данных</td></tr>';
           return;
         }
         tbody.innerHTML = data.map(order => `
@@ -100,11 +102,13 @@
             <td>${order["ДатаОформления"] || '-'}</td>
             <td>${order["МаршрутОТ"] || '-'}</td>
             <td>${order["МаршрутДО"] || '-'}</td>
+            <td>${order["Пожелание"] || '-'}</td>
+            <td>${order["Контакт"] || '-'}</td>
           </tr>
         `).join('');
       })
       .catch(err => {
-        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="12">Ошибка загрузки</td></tr>`;
+        document.querySelector('#orders-table tbody').innerHTML = `<tr><td colspan="14">Ошибка загрузки</td></tr>`;
         console.error('Ошибка:', err);
       });
   </script>

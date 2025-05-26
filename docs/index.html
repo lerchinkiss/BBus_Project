@@ -191,6 +191,17 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    #contact-request-block label {
+      font-weight: bold;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    #preferred-contact {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -253,6 +264,10 @@
       <div class="recommendations-box">
         <div class="section-title">Рекомендованные типы ТС</div>
         <p>Появятся после подбора...</p>
+          <div id="contact-request-block" style="display: none; margin-top: 20px;">
+            <label for="preferred-contact">Оставьте контакт для уведомления:</label>
+            <input type="text" id="preferred-contact" placeholder="Телефон, email и т.д." style="width: 100%; padding: 8px; margin-top: 6px;">
+          </div>
       </div>
     </div>
     <div class="table-box">

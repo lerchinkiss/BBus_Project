@@ -6,7 +6,7 @@ from datetime import datetime
 # Получаем JSON из переменной окружения
 json_data = os.environ.get("GOOGLE_CREDENTIALS_JSON")
 if not json_data:
-    raise Exception("❌ GOOGLE_CREDENTIALS_JSON переменная не найдена")
+    raise Exception("GOOGLE_CREDENTIALS_JSON переменная не найдена")
 
 # Сохраняем временный JSON-файл
 TEMP_CREDENTIALS_FILE = "temp_google_creds.json"
@@ -37,10 +37,12 @@ def save_order_data(order_data):
             booking_end,
             order_data.get("duration_hours", ""),
             order_data.get("total_price", ""),
-            order_data.get("vehicle_type", "") or order_data.get("type", ""),
+            order_data.get("vehicle_type", "") or order_data.get("type", "") or "",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             order_data.get("route_from", ""),
-            order_data.get("route_to", "")
+            order_data.get("route_to", ""),
+            order_data.get("wants_preferred_type", ""),
+            order_data.get("contact", "")
         ]
         sheet.append_row(row)
         print("Заказ добавлен в Google Таблицу")

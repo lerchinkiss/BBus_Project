@@ -1,6 +1,7 @@
 let knownCompanies = [];
 let isNewCustomer = false;
 let selectedTransportType = null;
+let preferredAlt = null;
 
 fetch('https://bbus-project.onrender.com/api/companies')
   .then(response => response.json())
@@ -26,6 +27,49 @@ document.getElementById('hours').addEventListener('input', updateTotalPrice);
 document.getElementById('passengers').addEventListener('input', () => {
   validatePassengers(document.getElementById('passengers'));
 });
+
+function submitNotifyRequest(type, inputId) {
+  const contact = document.getElementById(inputId).value;
+  if (!contact.trim()) {
+    alert("Пожалуйста, укажите контакт клиента для связи.");
+    document.getElementById(inputId).parentElement.remove();
+    return;
+  }
+
+  const company = input.value;
+  const datetimeStr = document.getElementById("booking_datetime").value;
+
+  fetch('https://bbus-project.onrender.com/api/notify_request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      company,
+      vehicle_type: type,
+      desired_time: datetimeStr,
+      contact
+    })
+  })
+    .then(response => response.json())
+    .then(() => alert("Запрос успешно отправлен"))
+    .catch(err => alert(`Ошибка при отправке запроса: ${err.message}`));
+}
+
+function markPreferredNotification(type) {
+  preferredAlt = type;
+  const box = document.querySelector(".recommendations-box");
+  const contactInputId = `notify-contact-${type.replace(/\s+/g, '-')}`;
+
+  // Проверка — если уже добавлено поле, не дублируем
+  if (document.getElementById(contactInputId)) return;
+
+  const form = document.createElement("div");
+  form.innerHTML = `
+    <p>Транспорт <strong>${type}</strong> сейчас занят. Оставьте контакт клиента, для дальнейшей связи:</p>
+    <input type="text" id="${contactInputId}" placeholder="Телефон или Email" class="form-control" style="max-width:300px; margin: 10px 0;">
+    <button class="btn btn-sm btn-outline-success" onclick="submitNotifyRequest('${type}', '${contactInputId}')">Отправить</button>
+  `;
+  box.appendChild(form);
+}
 
 function updateTotalPrice() {
   const price = parseFloat(document.getElementById('price').value);
@@ -164,12 +208,21 @@ document.getElementById('submit-button').onclick = function (e) {
 
           const style = rec.preferred ? 'border: 2px solid #800000; padding: 10px;' : '';
 
-          html += `
-            <div class="recommendation" style="${style}">
-              <p><strong>${rec.type}</strong>${tag} (вместимость: ${rec.capacity} мест)</p>
-              <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
-              <button class="select-btn" onclick="selectTransport('${rec.type}')">Выбрать</button>
-            </div>`;
+          if (!rec.available) {
+            html += `
+              <div class="recommendation" style="${style}">
+                <p><strong>${rec.type}</strong>${tag} (вместимость: ${rec.capacity} мест)</p>
+                <p style="color: red;">ТС занят на это время</p>
+                <button class="select-btn" onclick="markPreferredNotification('${rec.type}')">Сообщить, если освободится</button>
+              </div>`;
+          } else {
+            html += `
+              <div class="recommendation" style="${style}">
+                <p><strong>${rec.type}</strong>${tag} (вместимость: ${rec.capacity} мест)</p>
+                <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
+                <button class="select-btn" onclick="selectTransport('${rec.type}')">Выбрать</button>
+              </div>`;
+          }
         });
         html += `<p id="selected-transport-msg" style="margin-top: 10px; font-weight: bold; color: green;"></p>`;
       }
@@ -184,7 +237,7 @@ function selectTransport(type) {
     msg.textContent = `Вы выбрали: ${type}`;
   }
 
-  // Собираем данные из формы
+  // Данные из формы
   const company = input.value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
@@ -195,20 +248,18 @@ function selectTransport(type) {
   const routeFrom = document.getElementById('route-from').value;
   const routeTo = document.getElementById('route-to').value;
 
-  // Проверка на заполненность всех обязательных полей
   if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
     alert('Пожалуйста, заполните все поля корректно перед выбором ТС.');
     return;
   }
 
-  // Перевод строки в объект Date
+  // Формирование даты
   const [datePart, timePart] = datetimeStr.split(' ');
   const [yyyy, mm, dd] = datePart.split('-').map(Number);
   const [hh, min, ss] = timePart.split(':').map(Number);
   const start = new Date(yyyy, mm - 1, dd, hh, min, ss);
   const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
 
-  // Форматирование для сохранения
   const pad = n => n.toString().padStart(2, '0');
   const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
   const formattedStart = format(start);
@@ -227,7 +278,9 @@ function selectTransport(type) {
     total_price: totalCost,
     vehicle_type: selectedTransportType,
     route_from: routeFrom,
-    route_to: routeTo
+    route_to: routeTo,
+    wants_preferred_type: preferredAlt,
+    contact: document.getElementById(`notify-contact-${preferredAlt?.replace(/\s+/g, '-')}`)?.value || ""
   };
 
   fetch('https://bbus-project.onrender.com/api/save_order', {

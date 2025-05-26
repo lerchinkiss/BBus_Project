@@ -125,6 +125,12 @@ def recommend():
         количество_пассажиров = int(data['passengers'])
         цена_за_час = int(data['price'])
         тип_заказа = data['status']
+        start_str = data.get("booking_start")
+        end_str = data.get("booking_end")
+
+        # Конвертация времени для фильтра
+        start = datetime.strptime(start_str, "%Y-%m-%d %H:%M") if start_str else None
+        end = datetime.strptime(end_str, "%Y-%m-%d %H:%M") if end_str else None
 
         profile_row = customer_profile[customer_profile['Заказчик'] == заказчик]
         любимый_тип_тс = profile_row['ЛюбимыйТипТС'].values[0] if not profile_row.empty else None
@@ -141,62 +147,88 @@ def recommend():
             'ЛюбимыйСтатусЗаказа': любимый_статус_заказа
         }])
 
-        pool = Pool(input_data, cat_features=['Заказчик', 'ТипЗаказа', 'ЛюбимыйТипТС', 'ИсторическийЛюбимыйТС', 'ЛюбимыйСтатусЗаказа'])
+        pool = Pool(input_data, cat_features=[
+            'Заказчик', 'ТипЗаказа', 'ЛюбимыйТипТС', 'ИсторическийЛюбимыйТС', 'ЛюбимыйСтатусЗаказа'
+        ])
         probs = model.predict_proba(pool)[0]
-        top_indices = probs.argsort()[-10:][::-1]
-
-        recommendations = []
+        top_indices = probs.argsort()[::-1]
 
         def define_range(passengers):
-            if passengers <= 4:
-                return (1, 4)
-            elif passengers <= 8:
-                return (5, 8)
-            elif passengers <= 20:
-                return (9, 20)
-            elif passengers <= 50:
-                return (21, 50)
-            else:
-                return (51, 100)
+            if passengers <= 4: return (1, 4)
+            elif passengers <= 8: return (5, 8)
+            elif passengers <= 20: return (9, 20)
+            elif passengers <= 50: return (21, 50)
+            else: return (51, 100)
 
-        min_capacity, max_capacity = define_range(количество_пассажиров)
+        min_cap, max_cap = define_range(количество_пассажиров)
+        df = pd.DataFrame(sheet.get_all_records())
+        recommendations = []
 
-        # Добавляем любимый ТС первым (всегда!)
+        def is_available(ts_type):
+            count = fleet_info.get(ts_type, 1)
+            if not start or not end:
+                return True
+            overlapping = df[
+                (df['ТипТС'] == ts_type) &
+                (pd.to_datetime(df['ДатаБрони']) < end) &
+                (pd.to_datetime(df['ОкончаниеБрони']) > start)
+            ]
+            return len(overlapping) < count
+
+        # Добавим любимый ТС
         if любимый_тип_тс and любимый_тип_тс != 'Неизвестно':
             capacity = type_ts_mapping.get(любимый_тип_тс, 999)
-            is_valid = min_capacity <= capacity <= max_capacity
             recommendations.append({
                 'type': любимый_тип_тс,
-                'probability': 1.0,
                 'capacity': int(capacity),
+                'probability': 1.0,
                 'preferred': True,
-                'valid_capacity': is_valid
+                'valid_capacity': min_cap <= capacity <= max_cap,
+                'available': is_available(любимый_тип_тс)
             })
 
-        # Далее — по модели
         for idx in top_indices:
             ref = model.classes_[idx]
             if ref == любимый_тип_тс:
-                continue  # уже добавлен выше
-
-            probability = probs[idx]
+                continue
             capacity = type_ts_mapping.get(ref, 999)
-            if min_capacity <= capacity <= max_capacity:
-                recommendations.append({
-                    'type': ref,
-                    'probability': float(probability),
-                    'capacity': int(capacity),
-                    'preferred': False,
-                    'valid_capacity': True
-                })
-
-            if len(recommendations) >= 4:  # любимый + 3 рекомендаций
+            if not (min_cap <= capacity <= max_cap):
+                continue
+            recommendations.append({
+                'type': ref,
+                'capacity': int(capacity),
+                'probability': float(probs[idx]),
+                'preferred': False,
+                'valid_capacity': True,
+                'available': is_available(ref)
+            })
+            if len(recommendations) >= 5:
                 break
 
         return jsonify(recommendations)
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/notify_request', methods=['POST'])
+def notify_request():
+    try:
+        data = request.json
+        company = data.get("company")
+        vehicle_type = data.get("vehicle_type")
+        desired_time = data.get("desired_time")
+        contact = data.get("contact")
+
+        row = [
+            company,
+            vehicle_type,
+            desired_time,
+            contact,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ]
+        sheet_notify.append_row(row)
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/save_order', methods=['POST'])
 def save_order():
@@ -204,44 +236,40 @@ def save_order():
         data = request.json
         print("Получены данные заказа:", data)
 
-        vehicle_type = data.get('vehicle_type')
+        vehicle_type = data.get('vehicle_type', '').strip()
         start_str = data.get('booking_start')
         end_str = data.get('booking_end')
-
-        if not vehicle_type or not start_str or not end_str:
-            return jsonify({'error': 'Недостаточно данных для проверки автопарка'}), 400
 
         # Преобразуем строки в datetime
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S")
-        available_count = fleet_info.get(vehicle_type, 1)
-        print(f"Тип ТС: {vehicle_type}, Доступно машин: {available_count}")
 
-        # Загружаем заказы из Google Sheets
-        orders_data = sheet.get_all_records()
-        df = pd.DataFrame(orders_data)
-        print(f"Всего заказов в таблице: {len(df)}")
+        # Проверка занятости ТС — только если ТС указан
+        if vehicle_type:
+            available_count = fleet_info.get(vehicle_type, 1)
+            print(f"Тип ТС: {vehicle_type}, Доступно машин: {available_count}")
 
-        # Преобразуем колонки с датами в datetime
-        df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
-        df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
+            orders_data = sheet.get_all_records()
+            df = pd.DataFrame(orders_data)
+            print(f"Всего заказов в таблице: {len(df)}")
 
-        # Фильтруем пересекающиеся заказы
-        overlapping = df[
-            (df['ТипТС'] == vehicle_type) &
-            (
-                (df['ДатаБрони'] <= end) & (df['ОкончаниеБрони'] >= start) |  # Пересечение с началом
-                (df['ДатаБрони'] >= start) & (df['ДатаБрони'] <= end) |  # Пересечение с концом
-                (df['ОкончаниеБрони'] >= start) & (df['ОкончаниеБрони'] <= end)  # Полное включение
-            )
-        ]
-        print(f"Найдено пересекающихся заказов: {len(overlapping)}")
-        print("Пересекающиеся заказы:", overlapping[['ТипТС', 'ДатаБрони', 'ОкончаниеБрони']].to_dict('records'))
+            df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
+            df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
 
-        if len(overlapping) >= available_count:
-            return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
+            overlapping = df[
+                (df['ТипТС'] == vehicle_type) &
+                (
+                    (df['ДатаБрони'] <= end) & (df['ОкончаниеБрони'] >= start) |
+                    (df['ДатаБрони'] >= start) & (df['ДатаБрони'] <= end) |
+                    (df['ОкончаниеБрони'] >= start) & (df['ОкончаниеБрони'] <= end)
+                )
+            ]
+            print(f"Найдено пересекающихся заказов: {len(overlapping)}")
 
-        # Сохраняем заказ
+            if len(overlapping) >= available_count:
+                return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
+
+        # Сохраняем заказ в любом случае (с ТС или без)
         save_order_data(data)
         return jsonify({'status': 'ok'})
 
