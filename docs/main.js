@@ -50,7 +50,7 @@ function submitNotifyRequest(type, inputId) {
     })
   })
     .then(response => response.json())
-    .then(() => alert("Запрос успешно отправлен"))
+    .then(() => alert("Контакт сохранен. Выберите другое ТС."))
     .catch(err => alert(`Ошибка при отправке запроса: ${err.message}`));
 }
 
@@ -59,15 +59,27 @@ function markPreferredNotification(type) {
   const box = document.querySelector(".recommendations-box");
   const contactInputId = `notify-contact-${type.replace(/\s+/g, '-')}`;
 
-  // Проверка — если уже добавлено поле, не дублируем
-  if (document.getElementById(contactInputId)) return;
+  // Удалить предыдущую форму, если уже существует
+  const existingForm = document.querySelector(".notify-form");
+  if (existingForm) existingForm.remove();
 
   const form = document.createElement("div");
+  form.classList.add("notify-form");
+  form.style.marginTop = "15px";
+  form.style.border = "1px solid #ccc";
+  form.style.padding = "15px";
+  form.style.borderRadius = "5px";
+  form.style.backgroundColor = "#fefefe";
+
   form.innerHTML = `
-    <p>Транспорт <strong>${type}</strong> сейчас занят. Оставьте контакт клиента, для дальнейшей связи:</p>
-    <input type="text" id="${contactInputId}" placeholder="Телефон или Email" class="form-control" style="max-width:300px; margin: 10px 0;">
-    <button class="btn btn-sm btn-outline-success" onclick="submitNotifyRequest('${type}', '${contactInputId}')">Отправить</button>
+    <p style="margin-bottom: 8px;"><strong>Транспорт ${type}</strong> сейчас занят. Оставьте контакт клиента для уведомления:</p>
+    <input type="text" id="${contactInputId}" placeholder="Телефон или Email" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+    <div style="display: flex; gap: 10px;">
+      <button class="custom-btn" onclick="submitNotifyRequest('${type}', '${contactInputId}')">Отправить</button>
+      <button class="custom-btn" onclick="saveWithoutTransport('${type}', '${contactInputId}')">Сохранить заказ без выбора ТС</button>
+    </div>
   `;
+
   box.appendChild(form);
 }
 
@@ -232,16 +244,16 @@ document.getElementById('submit-button').onclick = function (e) {
           if (!rec.available) {
             html += `
               <div class="recommendation" style="${style}">
-                <p><strong>${rec.type}</strong>${tag} (вместимость: ${rec.capacity} мест)</p>
-                <p style="color: red;">ТС занят на это время</p>
-                <button class="select-btn" onclick="markPreferredNotification('${rec.type}')">Сообщить, если освободится</button>
+                <p><strong>${rec.type}</strong>: <span style="color: red;">Занят на данное время бронирования</span><br>
+                (вместимость: ${rec.capacity} мест)${tag}</p>
+                <button class="select-btn custom-btn" onclick="markPreferredNotification('${rec.type}')">Сообщить, если освободится</button>
               </div>`;
           } else {
             html += `
               <div class="recommendation" style="${style}">
                 <p><strong>${rec.type}</strong>${tag} (вместимость: ${rec.capacity} мест)</p>
                 <p>Вероятность: ${(rec.probability * 100).toFixed(1)}%</p>
-                <button class="select-btn" onclick="selectTransport('${rec.type}')">Выбрать</button>
+                <button class="select-btn custom-btn" onclick="selectTransport('${rec.type}')">Выбрать</button>
               </div>`;
           }
         });
@@ -322,6 +334,72 @@ function selectTransport(type) {
     })
     .then(() => {
       alert('Заказ успешно сохранен');
+    })
+    .catch(err => {
+      alert(`Ошибка: ${err.message}`);
+    });
+}
+
+function saveWithoutTransport(type, contactInputId) {
+  const contact = document.getElementById(contactInputId).value;
+
+  const company = input.value;
+  const passengers = parseInt(document.getElementById('passengers').value);
+  const pricePerHour = parseFloat(document.getElementById('price').value);
+  const hours = parseFloat(document.getElementById('hours').value);
+  const status = document.getElementById('status').value;
+  const newCompanyName = newCompanyInput.value;
+  const datetimeStr = document.getElementById("booking_datetime").value;
+  const routeFrom = document.getElementById('route-from').value;
+  const routeTo = document.getElementById('route-to').value;
+
+  if (!company || isNaN(passengers) || isNaN(pricePerHour) || isNaN(hours) || !datetimeStr || (isNewCustomer && !newCompanyName)) {
+    alert('Пожалуйста, заполните все поля корректно.');
+    return;
+  }
+
+  const [datePart, timePart] = datetimeStr.split(' ');
+  const [yyyy, mm, dd] = datePart.split('-').map(Number);
+  const [hh, min, ss] = timePart.split(':').map(Number);
+  const start = new Date(yyyy, mm - 1, dd, hh, min, ss);
+  const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+
+  const pad = n => n.toString().padStart(2, '0');
+  const format = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
+  const formattedStart = format(start);
+  const formattedEnd = format(end);
+  const totalCost = Math.round(pricePerHour * hours);
+
+  const postData = {
+    company,
+    passengers,
+    price: pricePerHour,
+    status,
+    new_company_name: isNewCustomer ? newCompanyName : '',
+    booking_start: formattedStart,
+    booking_end: formattedEnd,
+    duration_hours: hours,
+    total_price: totalCost,
+    vehicle_type: '',
+    route_from: routeFrom,
+    route_to: routeTo,
+    wants_preferred_type: type,
+    contact
+  };
+
+  fetch('https://bbus-project.onrender.com/api/save_order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(postData)
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => { throw new Error(err.error); });
+      }
+      return response.json();
+    })
+    .then(() => {
+      alert('Заказ сохранен без выбора ТС');
     })
     .catch(err => {
       alert(`Ошибка: ${err.message}`);
