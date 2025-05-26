@@ -129,8 +129,8 @@ def recommend():
         end_str = data.get("booking_end")
 
         # Конвертация времени для фильтра
-        start = datetime.strptime(start_str, "%Y-%m-%d %H:%M") if start_str else None
-        end = datetime.strptime(end_str, "%Y-%m-%d %H:%M") if end_str else None
+        start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S") if start_str else None
+        end = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S") if end_str else None
 
         profile_row = customer_profile[customer_profile['Заказчик'] == заказчик]
         любимый_тип_тс = profile_row['ЛюбимыйТипТС'].values[0] if not profile_row.empty else None
