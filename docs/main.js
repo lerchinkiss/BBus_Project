@@ -189,36 +189,37 @@ function validatePassengers(input) {
 document.getElementById('submit-button').onclick = function (e) {
   e.preventDefault();
 
-  const company = input.value;
+  const company = input.value.trim();
   const status = document.getElementById('status').value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
+  const hours = parseFloat(document.getElementById('hours').value);
   const routeFrom = document.getElementById('route-from').value.trim();
   const routeTo = document.getElementById('route-to').value.trim();
 
-  if (!company || !status || isNaN(passengers) || isNaN(pricePerHour)) {
-    alert('Пожалуйста, заполните все данные для подбора ТС.');
+  // Проверки
+  if (!company) {
+    alert('Укажите компанию');
     return;
   }
-
-  if (passengers < 1 || passengers > 59) {
-    alert('Количество пассажиров должно быть от 1 до 59.');
+  if (isNaN(passengers) || passengers < 1 || passengers > 59) {
+    alert('Количество пассажиров должно быть от 1 до 59');
     return;
   }
-
-  if (pricePerHour <= 0) {
-    alert('Стоимость должна быть положительной.');
+  if (isNaN(pricePerHour) || pricePerHour <= 0) {
+    alert('Стоимость за час должна быть положительным числом');
     return;
   }
-
+  if (isNaN(hours) || hours < 1) {
+    alert('Количество часов аренды должно быть не менее 1');
+    return;
+  }
   if (!routeFrom || !routeTo) {
-    alert('Пожалуйста, заполните маршрут ОТ и ДО.');
+    alert('Маршрут "От" и "До" обязательны для заполнения');
     return;
   }
 
   const datetimeStr = document.getElementById("booking_datetime").value;
-  const hours = parseFloat(document.getElementById("hours").value);
-
   let booking_start = "";
   let booking_end = "";
 
@@ -243,10 +244,8 @@ document.getElementById('submit-button').onclick = function (e) {
       passengers,
       price: pricePerHour,
       status,
-      booking_start: booking_start,
-      booking_end: booking_end,
-      route_from: routeFrom,
-      route_to: routeTo
+      booking_start,
+      booking_end
     })
   })
     .then(response => response.json())
