@@ -244,6 +244,15 @@ def save_order():
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S")
 
+        if int(data.get("passengers", 0)) < 1 or int(data.get("passengers", 0)) > 59:
+            return jsonify({'error': 'Недопустимое количество пассажиров'}), 400
+
+        if float(data.get("price", 0)) <= 0:
+            return jsonify({'error': 'Стоимость должна быть положительной'}), 400
+
+        if not data.get("route_from") or not data.get("route_to"):
+            return jsonify({'error': 'Маршруты ОТ и ДО обязательны'}), 400
+
         # Проверка занятости ТС — только если ТС указан
         if vehicle_type:
             available_count = fleet_info.get(vehicle_type, 1)

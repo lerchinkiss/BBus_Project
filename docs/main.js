@@ -178,7 +178,12 @@ function selectCompany(name) {
 
 function validatePassengers(input) {
   const warning = document.getElementById('passenger-warning');
-  warning.style.display = (input.value < 1 || input.value > 59) ? 'block' : 'none';
+  const value = parseInt(input.value);
+  if (value < 1 || value > 59) {
+    warning.style.display = 'block';
+  } else {
+    warning.style.display = 'none';
+  }
 }
 
 document.getElementById('submit-button').onclick = function (e) {
@@ -188,9 +193,26 @@ document.getElementById('submit-button').onclick = function (e) {
   const status = document.getElementById('status').value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
+  const routeFrom = document.getElementById('route-from').value.trim();
+  const routeTo = document.getElementById('route-to').value.trim();
 
   if (!company || !status || isNaN(passengers) || isNaN(pricePerHour)) {
     alert('Пожалуйста, заполните все данные для подбора ТС.');
+    return;
+  }
+
+  if (passengers < 1 || passengers > 59) {
+    alert('Количество пассажиров должно быть от 1 до 59.');
+    return;
+  }
+
+  if (pricePerHour <= 0) {
+    alert('Стоимость должна быть положительной.');
+    return;
+  }
+
+  if (!routeFrom || !routeTo) {
+    alert('Пожалуйста, заполните маршрут ОТ и ДО.');
     return;
   }
 
@@ -222,7 +244,9 @@ document.getElementById('submit-button').onclick = function (e) {
       price: pricePerHour,
       status,
       booking_start: booking_start,
-      booking_end: booking_end
+      booking_end: booking_end,
+      route_from: routeFrom,
+      route_to: routeTo
     })
   })
     .then(response => response.json())
