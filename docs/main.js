@@ -199,23 +199,23 @@ document.getElementById('submit-button').onclick = function (e) {
 
   // Проверки
   if (!company) {
-    alert('Укажите компанию');
+    alert('Укажите компанию.');
     return;
   }
   if (isNaN(passengers) || passengers < 1 || passengers > 59) {
-    alert('Количество пассажиров должно быть от 1 до 59');
+    alert('Количество пассажиров должно быть от 1 до 59.');
     return;
   }
   if (isNaN(pricePerHour) || pricePerHour <= 0) {
-    alert('Стоимость за час должна быть положительным числом');
+    alert('Стоимость за час должна быть положительным числом.');
     return;
   }
   if (isNaN(hours) || hours < 1) {
-    alert('Количество часов аренды должно быть не менее 1');
+    alert('Количество часов аренды должно быть не менее 1 часа.');
     return;
   }
   if (!routeFrom || !routeTo) {
-    alert('Маршрут "От" и "До" обязательны для заполнения');
+    alert('Маршрут "ОТ" и "ДО" обязательны для заполнения.');
     return;
   }
 
@@ -252,6 +252,7 @@ document.getElementById('submit-button').onclick = function (e) {
     .then(recommendations => {
       const box = document.querySelector('.recommendations-box');
       let html = '<div class="section-title">Рекомендованные типы ТС</div>';
+      html += '<div style="max-height: 300px; overflow-y: auto; padding-right: 10px;">';
       if (!recommendations.length) {
         html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
       } else {
@@ -280,6 +281,7 @@ document.getElementById('submit-button').onclick = function (e) {
               </div>`;
           }
         });
+        html += '</div>';
         if (!recommendations.some(r => r.available)) {
           html += `<div style="margin-top: 20px; background-color: #fff0f0; padding: 10px; border-left: 4px solid #800000; color: #800000; font-weight: bold;">
             Все подходящие ТС заняты. Рассмотрите возможность разделения пассажиров на несколько ТС.

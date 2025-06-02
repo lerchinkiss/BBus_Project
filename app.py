@@ -128,7 +128,6 @@ def recommend():
         start_str = data.get("booking_start")
         end_str = data.get("booking_end")
 
-        # Конвертация времени для фильтра
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S") if start_str else None
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S") if end_str else None
 
@@ -155,41 +154,51 @@ def recommend():
 
         def define_range(passengers):
             if passengers <= 4: return (1, 4)
-            elif passengers <= 8: return (5, 8)
-            elif passengers <= 20: return (9, 20)
-            elif passengers <= 50: return (21, 50)
-            else: return (51, 100)
+            elif passengers <= 7: return (5, 7)
+            elif passengers <= 16: return (8, 16)
+            elif passengers <= 20: return (17, 20)
+            elif passengers <= 35: return (21, 35)
+            elif passengers <= 43: return (36, 43)
+            elif passengers <= 49: return (44, 49)
+            elif passengers <= 53: return (50, 53)
+            elif passengers <= 59: return (54, 59)
+            else: return (60, 100)
 
         min_cap, max_cap = define_range(количество_пассажиров)
         df = pd.DataFrame(sheet.get_all_records())
-        recommendations = []
+        df['ТипТС'] = df['ТипТС'].astype(str).str.strip().str.lower()
 
         def is_available(ts_type):
+            ts_type_clean = ts_type.strip().lower()
             count = fleet_info.get(ts_type, 1)
             if not start or not end:
                 return True
             overlapping = df[
-                (df['ТипТС'] == ts_type) &
+                (df['ТипТС'] == ts_type_clean) &
                 (pd.to_datetime(df['ДатаБрони']) < end) &
                 (pd.to_datetime(df['ОкончаниеБрони']) > start)
             ]
             return len(overlapping) < count
 
-        # Добавим любимый ТС
+        added_types = set()
+        recommendations = []
+
         if любимый_тип_тс and любимый_тип_тс != 'Неизвестно':
             capacity = type_ts_mapping.get(любимый_тип_тс, 999)
-            recommendations.append({
-                'type': любимый_тип_тс,
-                'capacity': int(capacity),
-                'probability': 1.0,
-                'preferred': True,
-                'valid_capacity': min_cap <= capacity <= max_cap,
-                'available': is_available(любимый_тип_тс)
-            })
+            if min_cap <= capacity <= max_cap:
+                recommendations.append({
+                    'type': любимый_тип_тс,
+                    'capacity': int(capacity),
+                    'probability': 1.0,
+                    'preferred': True,
+                    'valid_capacity': True,
+                    'available': is_available(любимый_тип_тс)
+                })
+                added_types.add(любимый_тип_тс)
 
         for idx in top_indices:
             ref = model.classes_[idx]
-            if ref == любимый_тип_тс:
+            if ref in added_types:
                 continue
             capacity = type_ts_mapping.get(ref, 999)
             if not (min_cap <= capacity <= max_cap):
@@ -202,8 +211,20 @@ def recommend():
                 'valid_capacity': True,
                 'available': is_available(ref)
             })
-            if len(recommendations) >= 5:
-                break
+            added_types.add(ref)
+
+        for ref, capacity in type_ts_mapping.items():
+            if ref in added_types:
+                continue
+            if min_cap <= capacity <= max_cap:
+                recommendations.append({
+                    'type': ref,
+                    'capacity': int(capacity),
+                    'probability': 0.0,
+                    'preferred': False,
+                    'valid_capacity': True,
+                    'available': is_available(ref)
+                })
 
         return jsonify(recommendations)
     except Exception as e:
@@ -261,6 +282,8 @@ def save_order():
             orders_data = sheet.get_all_records()
             df = pd.DataFrame(orders_data)
             print(f"Всего заказов в таблице: {len(df)}")
+            df['ТипТС'] = df['ТипТС'].astype(str).str.strip().str.lower()
+            vehicle_type = vehicle_type.strip().lower()
 
             df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
             df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
