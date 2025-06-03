@@ -28,6 +28,10 @@ document.getElementById('passengers').addEventListener('input', () => {
   validatePassengers(document.getElementById('passengers'));
 });
 
+document.querySelectorAll('.select-btn').forEach(btn => {
+  btn.disabled = true;
+});
+
 function submitNotifyRequest(type, inputId) {
   const contact = document.getElementById(inputId).value;
   if (!contact.trim()) {
@@ -252,7 +256,7 @@ document.getElementById('submit-button').onclick = function (e) {
     .then(recommendations => {
       const box = document.querySelector('.recommendations-box');
       let html = '<div class="section-title">Рекомендованные типы ТС</div>';
-      html += '<div style="max-height: 300px; overflow-y: auto; padding-right: 10px;">';
+      html += '<div style="max-height: none; overflow-y: auto; padding-right: 10px; min-height: 420px;">';
       if (!recommendations.length) {
         html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
       } else {

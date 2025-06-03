@@ -22,7 +22,7 @@ CACHE_TIMEOUT = 3600
 # Загрузка автопарка
 with open(FLEET_FILE, 'r', encoding='utf-8') as f:
     fleet_info = json.load(f)
-
+    fleet_info = {k.strip().lower(): v for k, v in fleet_info.items()}
 # Кэш
 
 def save_to_cache(data):
@@ -183,36 +183,36 @@ def recommend():
         added_types = set()
         recommendations = []
 
+        # Добавляем любимый ТС вне зависимости от вместимости
         if любимый_тип_тс and любимый_тип_тс != 'Неизвестно':
             capacity = type_ts_mapping.get(любимый_тип_тс, 999)
-            if min_cap <= capacity <= max_cap:
-                recommendations.append({
-                    'type': любимый_тип_тс,
-                    'capacity': int(capacity),
-                    'probability': 1.0,
-                    'preferred': True,
-                    'valid_capacity': True,
-                    'available': is_available(любимый_тип_тс)
-                })
-                added_types.add(любимый_тип_тс)
+            recommendations.append({
+                'type': любимый_тип_тс,
+                'capacity': int(capacity),
+                'probability': 1.0,
+                'preferred': True,
+                'valid_capacity': min_cap <= capacity <= max_cap,
+                'available': is_available(любимый_тип_тс)
+            })
+            added_types.add(любимый_тип_тс)
 
+        # Добавляем топ по вероятностям
         for idx in top_indices:
             ref = model.classes_[idx]
             if ref in added_types:
                 continue
             capacity = type_ts_mapping.get(ref, 999)
-            if not (min_cap <= capacity <= max_cap):
-                continue
             recommendations.append({
                 'type': ref,
                 'capacity': int(capacity),
                 'probability': float(probs[idx]),
                 'preferred': False,
-                'valid_capacity': True,
+                'valid_capacity': min_cap <= capacity <= max_cap,
                 'available': is_available(ref)
             })
             added_types.add(ref)
 
+        # Добавим оставшиеся, чтобы показать ВСЕ варианты подходящей вместимости
         for ref, capacity in type_ts_mapping.items():
             if ref in added_types:
                 continue
@@ -227,6 +227,7 @@ def recommend():
                 })
 
         return jsonify(recommendations)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -257,7 +258,8 @@ def save_order():
         data = request.json
         print("Получены данные заказа:", data)
 
-        vehicle_type = data.get('vehicle_type', '').strip()
+        vehicle_type_original = data.get('vehicle_type', '').strip()
+        vehicle_type_clean = vehicle_type_original.lower()
         start_str = data.get('booking_start')
         end_str = data.get('booking_end')
 
@@ -265,6 +267,7 @@ def save_order():
         start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
         end = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S")
 
+        # Валидации
         if int(data.get("passengers", 0)) < 1 or int(data.get("passengers", 0)) > 59:
             return jsonify({'error': 'Недопустимое количество пассажиров'}), 400
 
@@ -274,34 +277,27 @@ def save_order():
         if not data.get("route_from") or not data.get("route_to"):
             return jsonify({'error': 'Маршруты ОТ и ДО обязательны'}), 400
 
-        # Проверка занятости ТС — только если ТС указан
-        if vehicle_type:
-            available_count = fleet_info.get(vehicle_type, 1)
-            print(f"Тип ТС: {vehicle_type}, Доступно машин: {available_count}")
+        # Проверка занятости ТС
+        if vehicle_type_original:
+            available_count = fleet_info.get(vehicle_type_clean, 1)
+            print(f"Тип ТС: {vehicle_type_clean}, Доступно машин: {available_count}")
 
-            orders_data = sheet.get_all_records()
-            df = pd.DataFrame(orders_data)
-            print(f"Всего заказов в таблице: {len(df)}")
+            df = pd.DataFrame(sheet.get_all_records())
             df['ТипТС'] = df['ТипТС'].astype(str).str.strip().str.lower()
-            vehicle_type = vehicle_type.strip().lower()
-
-            df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
-            df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], format="%Y-%m-%d %H:%M:%S", errors='coerce')
+            df['ДатаБрони'] = pd.to_datetime(df['ДатаБрони'], errors='coerce')
+            df['ОкончаниеБрони'] = pd.to_datetime(df['ОкончаниеБрони'], errors='coerce')
 
             overlapping = df[
-                (df['ТипТС'] == vehicle_type) &
-                (
-                    (df['ДатаБрони'] <= end) & (df['ОкончаниеБрони'] >= start) |
-                    (df['ДатаБрони'] >= start) & (df['ДатаБрони'] <= end) |
-                    (df['ОкончаниеБрони'] >= start) & (df['ОкончаниеБрони'] <= end)
-                )
+                (df['ТипТС'] == vehicle_type_clean) &
+                ((df['ДатаБрони'] <= end) & (df['ОкончаниеБрони'] >= start))
             ]
+
             print(f"Найдено пересекающихся заказов: {len(overlapping)}")
 
             if len(overlapping) >= available_count:
-                return jsonify({'error': f'Все {available_count} {vehicle_type} уже забронированы на это время.'}), 409
+                return jsonify({'error': f'Все {available_count} {vehicle_type_original} уже забронированы на это время.'}), 409
 
-        # Сохраняем заказ в любом случае (с ТС или без)
+        # Сохраняем заказ в таблицу
         save_order_data(data)
         return jsonify({'status': 'ok'})
 
