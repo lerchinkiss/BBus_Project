@@ -329,38 +329,48 @@ def get_analysis_data():
         top_customers.columns = ['customer', 'count']
         top_customers = top_customers.to_dict('records')
 
+        # Топ-10 заказчиков по пассажирам
+        passengers_by_customer = orders_df.groupby('Заказчик')['КоличествоПассажиров'].sum().reset_index()
+        passengers_by_customer.columns = ['customer', 'total_passengers']
+        passengers_by_customer = passengers_by_customer.sort_values('total_passengers', ascending=False).head(10)
+        passengers_by_customer = passengers_by_customer.to_dict('records')
+
+        # Распределение вместимости ТС
+        capacity_distribution = orders_df['КоличествоПассажиров'].value_counts().reset_index()
+        capacity_distribution.columns = ['capacity', 'count']
+        capacity_distribution = capacity_distribution.to_dict('records')
+
+        # Топ-10 ТС по вместимости
+        top_vehicles_by_capacity = orders_df.groupby('ТипТС')['КоличествоПассажиров'].max().reset_index()
+        top_vehicles_by_capacity.columns = ['type', 'capacity']
+        top_vehicles_by_capacity = top_vehicles_by_capacity.sort_values('capacity', ascending=False).head(10)
+        top_vehicles_by_capacity = top_vehicles_by_capacity.to_dict('records')
+
+        # Распределение цен по типам ТС
+        price_distribution = orders_df[['ТипТС', 'ЦенаЗаЧас']].dropna().to_dict('records')
+
         # Динамика заказов по месяцам
         orders_df['Месяц'] = pd.to_datetime(orders_df['Date']).dt.strftime('%Y-%m')
         monthly_orders = orders_df.groupby('Месяц').size().reset_index()
         monthly_orders.columns = ['month', 'count']
         monthly_orders = monthly_orders.to_dict('records')
 
-        # Корреляция пассажиров и цены
-        price_passengers = orders_df[['КоличествоПассажиров', 'ЦенаЗаЧас']].dropna().to_dict('records')
-
-        # Пиковые часы заказов
-        orders_df['Час'] = pd.to_datetime(orders_df['Date']).dt.hour
-        hourly_orders = orders_df.groupby('Час').size().reset_index()
-        hourly_orders.columns = ['hour', 'count']
-        hourly_orders = hourly_orders.to_dict('records')
-
-        # Частота заказов по заказчикам
-        customer_frequency = orders_df.groupby('Заказчик').agg({
-            'Date': 'count',
-            'КоличествоПассажиров': 'mean',
-            'ЦенаЗаЧас': 'mean'
+        # Диапазон цен по типам ТС
+        price_range = orders_df.groupby('ТипТС').agg({
+            'ЦенаЗаЧас': ['min', 'max']
         }).reset_index()
-        customer_frequency.columns = ['customer', 'order_count', 'avg_passengers', 'avg_price']
-        customer_frequency = customer_frequency.sort_values('order_count', ascending=False).head(10)
-        customer_frequency = customer_frequency.to_dict('records')
+        price_range.columns = ['type', 'min_price', 'max_price']
+        price_range = price_range.to_dict('records')
 
         return jsonify({
             'topVehicles': top_vehicles,
             'topCustomers': top_customers,
+            'passengersByCustomer': passengers_by_customer,
+            'capacityDistribution': capacity_distribution,
+            'topVehiclesByCapacity': top_vehicles_by_capacity,
+            'priceDistribution': price_distribution,
             'monthlyOrders': monthly_orders,
-            'pricePassengers': price_passengers,
-            'hourlyOrders': hourly_orders,
-            'customerFrequency': customer_frequency
+            'priceRange': price_range
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

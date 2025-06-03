@@ -158,6 +158,73 @@
         })
       },
       {
+        id: 'passengersByCustomerChart',
+        title: 'Топ-10 заказчиков по пассажирам',
+        desc: 'Заказчики с наибольшим количеством перевезенных пассажиров.',
+        plot: () => ({
+          data: [{
+            x: data.passengersByCustomer.map(i => i.customer),
+            y: data.passengersByCustomer.map(i => i.total_passengers),
+            type: 'bar',
+            marker: { color: '#800000' }
+          }],
+          layout: {
+            xaxis: { title: 'Заказчик', tickangle: -45 },
+            yaxis: { title: 'Общее количество пассажиров' }
+          }
+        })
+      },
+      {
+        id: 'capacityDistributionChart',
+        title: 'Распределение вместимости ТС',
+        desc: 'Распределение количества мест по типам ТС.',
+        plot: () => ({
+          data: [{
+            x: data.capacityDistribution.map(i => i.capacity),
+            type: 'histogram',
+            marker: { color: '#800000' }
+          }],
+          layout: {
+            xaxis: { title: 'Количество мест' },
+            yaxis: { title: 'Количество типов ТС' }
+          }
+        })
+      },
+      {
+        id: 'topVehiclesByCapacityChart',
+        title: 'Топ-10 ТС по вместимости',
+        desc: 'Типы ТС с наибольшей вместимостью.',
+        plot: () => ({
+          data: [{
+            x: data.topVehiclesByCapacity.map(i => i.type),
+            y: data.topVehiclesByCapacity.map(i => i.capacity),
+            type: 'bar',
+            marker: { color: '#800000' }
+          }],
+          layout: {
+            xaxis: { title: 'Тип ТС', tickangle: -45 },
+            yaxis: { title: 'Количество мест' }
+          }
+        })
+      },
+      {
+        id: 'priceDistributionChart',
+        title: 'Распределение цен по типам ТС',
+        desc: 'Распределение цен за час по типам ТС.',
+        plot: () => ({
+          data: [{
+            y: data.priceDistribution.map(i => i.type),
+            x: data.priceDistribution.map(i => i.price),
+            type: 'violin',
+            marker: { color: '#800000' }
+          }],
+          layout: {
+            xaxis: { title: 'Цена за час' },
+            yaxis: { title: 'Тип ТС' }
+          }
+        })
+      },
+      {
         id: 'monthlyOrdersChart',
         title: 'Динамика заказов по месяцам',
         desc: 'Сезонность спроса на транспортные услуги.',
@@ -177,54 +244,30 @@
         })
       },
       {
-        id: 'hourlyOrdersChart',
-        title: 'Пиковые часы заказов',
-        desc: 'Часы наибольшей активности клиентов.',
+        id: 'priceRangeChart',
+        title: 'Диапазон цен по типам ТС',
+        desc: 'Минимальные и максимальные цены по типам ТС.',
         plot: () => ({
-          data: [{
-            x: data.hourlyOrders.map(i => i.hour),
-            y: data.hourlyOrders.map(i => i.count),
-            type: 'bar',
-            marker: { color: '#800000' }
-          }],
+          data: [
+            {
+              x: data.priceRange.map(i => i.type),
+              y: data.priceRange.map(i => i.min_price),
+              name: 'Минимальная цена',
+              type: 'bar',
+              marker: { color: '#800000' }
+            },
+            {
+              x: data.priceRange.map(i => i.type),
+              y: data.priceRange.map(i => i.max_price),
+              name: 'Максимальная цена',
+              type: 'bar',
+              marker: { color: '#a00000' }
+            }
+          ],
           layout: {
-            xaxis: { title: 'Час', tickmode: 'linear' },
-            yaxis: { title: 'Количество заказов' }
-          }
-        })
-      },
-      {
-        id: 'pricePassengersChart',
-        title: 'Пассажиры vs Цена',
-        desc: 'Зависимость цены от числа пассажиров.',
-        plot: () => ({
-          data: [{
-            x: data.pricePassengers.map(i => i.КоличествоПассажиров),
-            y: data.pricePassengers.map(i => i.ЦенаЗаЧас),
-            mode: 'markers',
-            type: 'scatter',
-            marker: { size: 7, color: '#800000', opacity: 0.7 }
-          }],
-          layout: {
-            xaxis: { title: 'Пассажиров' },
-            yaxis: { title: 'Цена за час' }
-          }
-        })
-      },
-      {
-        id: 'customerFrequencyChart',
-        title: 'Частота заказов по заказчикам',
-        desc: 'Регулярность заказов от клиентов.',
-        plot: () => ({
-          data: [{
-            x: data.customerFrequency.map(i => i.customer),
-            y: data.customerFrequency.map(i => i.order_count),
-            type: 'bar',
-            marker: { color: '#800000' }
-          }],
-          layout: {
-            xaxis: { title: 'Заказчик', tickangle: -45 },
-            yaxis: { title: 'Количество заказов' }
+            xaxis: { title: 'Тип ТС', tickangle: -45 },
+            yaxis: { title: 'Цена за час' },
+            barmode: 'group'
           }
         })
       }

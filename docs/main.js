@@ -256,7 +256,7 @@ document.getElementById('submit-button').onclick = function (e) {
     .then(recommendations => {
       const box = document.querySelector('.recommendations-box');
       let html = '<div class="section-title">Рекомендованные типы ТС</div>';
-      html += '<div style="max-height: none; overflow-y: auto; padding-right: 10px; min-height: 420px;">';
+      html += '<div style="max-height: 450px; overflow-y: auto; padding-right: 10px;">';
       if (!recommendations.length) {
         html += '<p>Не удалось найти подходящий транспорт по количеству пассажиров.</p>';
       } else {
