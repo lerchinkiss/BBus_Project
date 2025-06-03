@@ -150,7 +150,7 @@ def recommend():
             'Заказчик', 'ТипЗаказа', 'ЛюбимыйТипТС', 'ИсторическийЛюбимыйТС', 'ЛюбимыйСтатусЗаказа'
         ])
         probs = model.predict_proba(pool)[0]
-        top_indices = probs.argsort()[::-1]
+        model_classes = list(model.classes_)
 
         def define_range(passengers):
             if passengers <= 4: return (1, 4)
@@ -165,6 +165,7 @@ def recommend():
             else: return (60, 100)
 
         min_cap, max_cap = define_range(количество_пассажиров)
+
         df = pd.DataFrame(sheet.get_all_records())
         df['ТипТС'] = df['ТипТС'].astype(str).str.strip().str.lower()
 
@@ -180,10 +181,38 @@ def recommend():
             ]
             return len(overlapping) < count
 
-        added_types = set()
-        recommendations = []
+        # Проверяем, есть ли похожие заказы у этого заказчика
+        company_orders = orders_df[orders_df['Заказчик'] == заказчик]
+        has_similar = not company_orders[
+            (company_orders['КоличествоПассажиров'].between(количество_пассажиров - 1, количество_пассажиров + 1)) &
+            (company_orders['ЦенаЗаЧас'].between(цена_за_час * 0.8, цена_за_час * 1.2))
+        ].empty
 
-        # Добавляем любимый ТС вне зависимости от вместимости
+        if not has_similar:
+            print("Используем вероятности по похожим заказам других клиентов.")
+
+            def estimate_from_similar_orders(passengers, price):
+                delta_passengers = 1
+                delta_price = 0.2
+                similar = orders_df[
+                    (orders_df['КоличествоПассажиров'].between(passengers - delta_passengers, passengers + delta_passengers)) &
+                    (orders_df['ЦенаЗаЧас'].between(price * (1 - delta_price), price * (1 + delta_price)))
+                ]
+                if similar.empty:
+                    return {}
+                total = len(similar)
+                counts = similar['ТипТС'].value_counts()
+                return {ts: count / total for ts, count in counts.items()}
+
+            similar_probs = estimate_from_similar_orders(количество_пассажиров, цена_за_час)
+            probs = [similar_probs.get(cls, 0.0) for cls in model_classes]
+
+        top_indices = sorted(range(len(probs)), key=lambda i: probs[i], reverse=True)
+
+        recommendations = []
+        added_types = set()
+
+        # Любимый ТС
         if любимый_тип_тс and любимый_тип_тс != 'Неизвестно':
             capacity = type_ts_mapping.get(любимый_тип_тс, 999)
             recommendations.append({
@@ -196,9 +225,9 @@ def recommend():
             })
             added_types.add(любимый_тип_тс)
 
-        # Добавляем топ по вероятностям
+        # Модельные рекомендации
         for idx in top_indices:
-            ref = model.classes_[idx]
+            ref = model_classes[idx]
             if ref in added_types:
                 continue
             capacity = type_ts_mapping.get(ref, 999)
@@ -209,12 +238,12 @@ def recommend():
                 'capacity': int(capacity),
                 'probability': float(probs[idx]),
                 'preferred': False,
-                'valid_capacity': min_cap <= capacity <= max_cap,
+                'valid_capacity': True,
                 'available': is_available(ref)
             })
             added_types.add(ref)
 
-        # Добавим оставшиеся, чтобы показать ВСЕ варианты подходящей вместимости
+        # Остальные подходящие по вместимости
         for ref, capacity in type_ts_mapping.items():
             if ref in added_types:
                 continue
