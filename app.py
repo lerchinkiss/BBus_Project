@@ -170,7 +170,7 @@ def recommend():
 
         def is_available(ts_type):
             ts_type_clean = ts_type.strip().lower()
-            count = fleet_info.get(ts_type, 1)
+            count = fleet_info.get(ts_type_clean, 1)
             if not start or not end:
                 return True
             overlapping = df[
@@ -202,6 +202,8 @@ def recommend():
             if ref in added_types:
                 continue
             capacity = type_ts_mapping.get(ref, 999)
+            if not (min_cap <= capacity <= max_cap):
+                continue
             recommendations.append({
                 'type': ref,
                 'capacity': int(capacity),
@@ -279,6 +281,7 @@ def save_order():
 
         # Проверка занятости ТС
         if vehicle_type_original:
+            vehicle_type_clean = vehicle_type_original.strip().lower()
             available_count = fleet_info.get(vehicle_type_clean, 1)
             print(f"Тип ТС: {vehicle_type_clean}, Доступно машин: {available_count}")
 
