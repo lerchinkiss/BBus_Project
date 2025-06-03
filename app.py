@@ -192,17 +192,25 @@ def recommend():
             print("Используем вероятности по похожим заказам других клиентов.")
 
             def estimate_from_similar_orders(passengers, price):
-                delta_passengers = 1
-                delta_price = 0.2
+                delta_passengers = max(2, int(passengers * 0.15))  # Гибкий диапазон
+                delta_price = 0.2  # 20%
+
+                lower_p = passengers - delta_passengers
+                upper_p = passengers + delta_passengers
+                lower_price = price * (1 - delta_price)
+                upper_price = price * (1 + delta_price)
+
                 similar = orders_df[
-                    (orders_df['КоличествоПассажиров'].between(passengers - delta_passengers, passengers + delta_passengers)) &
-                    (orders_df['ЦенаЗаЧас'].between(price * (1 - delta_price), price * (1 + delta_price)))
-                ]
+                    (orders_df['КоличествоПассажиров'].between(lower_p, upper_p)) &
+                    (orders_df['ЦенаЗаЧас'].between(lower_price, upper_price))
+                    ]
+
                 if similar.empty:
-                    return {}
+                    return {cls: 0.05 for cls in model_classes}  # каждому по минимуму
+
                 total = len(similar)
                 counts = similar['ТипТС'].value_counts()
-                return {ts: count / total for ts, count in counts.items()}
+                return {cls: round(counts.get(cls, 0) / total, 3) for cls in model_classes}
 
             similar_probs = estimate_from_similar_orders(количество_пассажиров, цена_за_час)
             probs = [similar_probs.get(cls, 0.0) for cls in model_classes]
