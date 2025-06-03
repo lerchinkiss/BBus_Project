@@ -238,27 +238,34 @@
       margin-bottom: 8px;
       box-sizing: border-box;
     }
-    .tooltip {
-      position: relative;
+
+    .tooltip-icon {
       display: inline-block;
-      cursor: help;
+      position: relative;
+      cursor: pointer;
+      margin-left: 8px;
+      font-size: 16px;
+      color: #800000;
     }
 
-    .tooltip .tooltiptext {
+    .tooltip-icon .tooltiptext {
       visibility: hidden;
-      width: 240px;
-      background-color: #fff4e6;
+      width: 320px;
+      background-color: #fff0d6;
       color: #333;
       text-align: left;
-      border-radius: 6px;
-      padding: 10px;
-      border: 1px solid #d8b08c;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid #d6a96c;
       position: absolute;
-      z-index: 1;
-      top: -5px;
-      left: 110%;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+      z-index: 9999;
+      top: -10px;
+      left: 105%;
+      box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
       font-size: 14px;
+      max-height: 300px;
+      overflow-y: auto;
+      line-height: 1.4;
     }
 
     .tooltip:hover .tooltiptext {
@@ -295,38 +302,40 @@
           <label for="passengers">Количество пассажиров (максимум 59)</label>
           <input type="number" id="passengers" placeholder="Введите число" max="59" onblur="validatePassengers(this)">
           <div id="passenger-warning" class="warning" style="display: none;">Введите значение от 1 до 59</div>
-          <div class="tooltip">
-            <label for="price">Стоимость за час аренды (руб.)</label>
-            <input type="number" id="price" placeholder="Введите число">
-            <span class="tooltiptext">
-              Средняя стоимость ТС в час:<br>
+          <label for="price">
+            Стоимость за час аренды (руб.)
+            <span class="tooltip-icon">
+              ❓️️
+              <span class="tooltiptext">
+              СРЕДНЯЯ СТОИМОСТЬ В ЧАС:<br>
               Грузовой – 848 руб.<br>
               Мерседес S-222 – 1232 руб.<br>
               Мерседес Е-213 – 946 руб.<br>
-              ПАЗ 25+16 – 1150 руб.<br>
               Шкода Октавия – 897 руб.<br>
+              Бизнес Легковая – 829 руб.<br>
+              Эконом Легковая – 756 руб.<br>
+              Минивэны 07 – 1051 руб.<br>
               07 Мерседес VITO – 0 руб.<br>
               16 Мерседес Спринтер (багаж)  – 901 руб.<br>
               19 VIP Мерседес Спринтер – 2700 руб.<br>
               19 Мерседес Спринтер – 1114 руб.<br>
+              Микроавтобус 20 – 743 руб.<br>
               35 Автобус вместо микрика – 3313 руб.<br>
+              ПАЗ 25+16 – 1150 руб.<br>
+              Азия Автобус 43+1 – 1418 руб.<br>
+              Азия Автобус 47+1 – 1126 руб.<br>
               49+1 Европа Автобус – 1679 руб.<br>
               49+1 ЮТОНГ Автобус – 1555 руб.<br>
+              Азия Автобус 49+1 – 2004 руб.<br>
               51+1 Европа Автобус – 1741 руб.<br>
               51+1 ЮТОНГ Автобус – 1607 руб.<br>
               53+1 ЮТОНГ Автобус – 1866 руб.<br>
               55+1 Европа Автобус (АДИДАС)  – 1429 руб.<br>
               57+1 ЮТОНГ Автобус – 1976 руб.<br>
               59+0/1 Европа Автобус – 1826 руб.<br>
-              Азия Автобус 43+1 – 1418 руб.<br>
-              Азия Автобус 47+1 – 1126 руб.<br>
-              Азия Автобус 49+1 – 2004 руб.<br>
-              Бизнес Легковая – 829 руб.<br>
-              Европа Автобус 63+1 – 983 руб.<br>
-              Микроавтобус 20 – 743 руб.<br>
-              Минивэны 07 – 1051 руб.<br>
-              Эконом Легковая – 756 руб.<br>
+              </span>
             </span>
+          </label>
           </div>
           <label for="route-from">Маршрут ОТ</label>
           <input type="text" id="route-from" placeholder="Введите адрес отправления">
