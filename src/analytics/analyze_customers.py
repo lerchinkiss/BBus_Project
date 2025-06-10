@@ -8,9 +8,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from app.link_tables import apply_links
+from common_imports import OUTPUTS_DIR
 
 # === Загрузка данных ===
-df_path = os.path.join("../..", "filtered_datasets", "bbOrders_filtered.xlsx")
+df_path = os.path.join("../..", "data", "filtered_datasets", "bbOrders_filtered.xlsx")
 df = pd.read_excel(df_path)
 df = apply_links(df)
 
@@ -56,6 +57,7 @@ sns.histplot(df['КоличествоПассажиров'].dropna(), bins=30, k
 plt.title("Распределение количества пассажиров")
 plt.xlabel("Пассажиров")
 plt.tight_layout()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'passenger_distribution.png'))
 plt.show()
 
 # === Сводка профилей заказчиков ===
@@ -70,9 +72,9 @@ profiles = df.groupby('Заказчик').agg({
 profiles.columns = ['СреднееПассажиров', 'Маршрут', 'ТС', 'ТипТС', 'ПервыйЗаказ', 'ПоследнийЗаказ', 'ВсегоЗаказов']
 profiles = profiles.reset_index()
 
-print("\n📋 Пример сводки профиля клиента:")
+print("\n Пример сводки профиля клиента:")
 print(profiles.head(3))
 
 # === Сохранение профилей (если нужно) ===
-os.makedirs("../../bbrecommend/bbrecommend", exist_ok=True)
+os.makedirs("../../bbrecommend", exist_ok=True)
 profiles.to_excel("bbrecommend/customer_profiles.xlsx", index=False)

@@ -60,6 +60,25 @@ def plot_confusion_matrix(y_true, y_pred, model_name):
     plt.savefig(os.path.join(OUTPUTS_DIR, f'confusion_matrix_{model_name.lower()}.png'))
     plt.close()
 
+def plot_model_comparison(models_results):
+    """Построение графика сравнения моделей"""
+    plt.figure(figsize=(12, 6))
+    metrics = ['accuracy', 'precision', 'recall', 'f1']
+    x = np.arange(len(metrics))
+    width = 0.2
+    
+    for i, (model_name, results) in enumerate(models_results.items()):
+        plt.bar(x + i*width, [results[m] for m in metrics], width, label=model_name)
+    
+    plt.xlabel('Метрики')
+    plt.ylabel('Значение')
+    plt.title('Сравнение моделей по метрикам')
+    plt.xticks(x + width, metrics)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'model_comparison.png'))
+    plt.close()
+
 def compare_predictions(y_true, y_pred_cat, y_pred_rf):
     """Сравнение предсказаний моделей"""
     # Преобразуем все данные в одномерные массивы

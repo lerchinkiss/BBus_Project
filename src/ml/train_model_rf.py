@@ -57,4 +57,15 @@ joblib.dump(rf_model, os.path.join(MODELS_DIR, "randomforest_typets_model.pkl"))
 
 logger.info("Обучение модели RandomForest завершено!")
 logger.info(f"Модель сохранена в: {os.path.join(MODELS_DIR, 'randomforest_typets_model.pkl')}")
-logger.info(f"Точность на тестовой выборке: {accuracy:.4f}") 
+logger.info(f"Точность на тестовой выборке: {accuracy:.4f}")
+
+# Визуализация результатов
+plt.figure(figsize=(12, 8))
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix - Random Forest Classification')
+plt.tight_layout()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'rf_confusion_matrix.png'))
+plt.show()

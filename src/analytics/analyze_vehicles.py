@@ -15,9 +15,9 @@ from openpyxl.utils import get_column_letter
 def load_data():
     """Загрузка и объединение данных"""
     # Загрузка основных данных
-    df_orders = pd.read_excel('filtered_datasets/bbOrders_filtered.xlsx')
-    df_models = pd.read_excel('filtered_datasets/uatModelsTS_filtered.xlsx')
-    df_type_ts = pd.read_excel('filtered_datasets/uatTypeTS_filtered.xlsx')
+    df_orders = pd.read_excel('../../data/filtered_datasets/bbOrders_filtered.xlsx')
+    df_models = pd.read_excel('../../data/filtered_datasets/uatModelsTS_filtered.xlsx')
+    df_type_ts = pd.read_excel('../../data/filtered_datasets/uatTypeTS_filtered.xlsx')
     
     print("\nПроверка исходных данных:")
     print(f"Количество строк в заказах: {len(df_orders)}")
@@ -172,31 +172,10 @@ def analyze_capacity(df):
 def create_visualizations(df, capacity_analysis):
     """Создание визуализаций"""
     # Создаем директорию для графиков, если её нет
-    if not os.path.exists('visualizations'):
-        os.makedirs('visualizations')
+    if not os.path.exists('../../outputs/visualizations'):
+        os.makedirs('../../outputs/visualizations')
     
-    # 1. Распределение вместимости
-    plt.figure(figsize=(12, 6))
-    sns.histplot(data=capacity_analysis, x='Вместимость', bins=20)
-    plt.title('Распределение вместимости ТС')
-    plt.xlabel('Вместимость (мест)')
-    plt.ylabel('Количество типов ТС')
-    plt.savefig('visualizations/capacity_distribution.png')
-    plt.close()
-    
-    # 2. Топ-10 самых используемых ТС
-    plt.figure(figsize=(12, 6))
-    top_10 = capacity_analysis.head(10)
-    sns.barplot(data=top_10, x='ТипТС', y='КоличествоЗаказов')
-    plt.title('Топ-10 самых используемых типов ТС')
-    plt.xlabel('Тип ТС')
-    plt.ylabel('Количество заказов')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig('visualizations/top_10_vehicles.png')
-    plt.close()
-    
-    # 3. Соотношение вместимости и использования
+    # 1. Соотношение вместимости и использования
     fig = px.scatter(
         capacity_analysis,
         x='Вместимость',
@@ -205,15 +184,15 @@ def create_visualizations(df, capacity_analysis):
         hover_data=['ТипТС', 'ПроцентИспользования'],
         title='Соотношение вместимости и фактического использования'
     )
-    fig.write_html('visualizations/capacity_usage.html')
+    fig.write_html('../../outputs/visualizations/capacity_usage.html')
     
-    # 4. Распределение количества пассажиров
+    # 2. Распределение количества пассажиров
     plt.figure(figsize=(12, 6))
     sns.histplot(data=df, x='КоличествоПассажиров', bins=30)
     plt.title('Распределение количества пассажиров')
     plt.xlabel('Количество пассажиров')
     plt.ylabel('Количество заказов')
-    plt.savefig('visualizations/passengers_distribution.png')
+    plt.savefig('../../outputs/visualizations/passengers_distribution.png')
     plt.close()
 
 def save_to_excel(capacity_analysis):
@@ -223,7 +202,7 @@ def save_to_excel(capacity_analysis):
         os.makedirs('analysis_results')
     
     # Создаем Excel файл
-    writer = pd.ExcelWriter('analysis_results/vehicle_capacity_analysis.xlsx', engine='openpyxl')
+    writer = pd.ExcelWriter('../../outputs/analysis_results/vehicle_capacity_analysis.xlsx', engine='openpyxl')
     capacity_analysis.to_excel(writer, sheet_name='Анализ вместимости', index=False)
     
     # Получаем рабочую книгу и лист

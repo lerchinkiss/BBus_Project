@@ -1,5 +1,13 @@
 from common_imports import *
 from link_tables import apply_links
+import pandas as pd
+import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from common_imports import OUTPUTS_DIR
 
 # Загрузка и подготовка
 df = pd.read_excel(os.path.join(DATA_DIR, "filtered_datasets", "bbOrders_filtered.xlsx"))
@@ -63,8 +71,27 @@ features = pd.concat([
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(features)
 
-# Кластеризация
-kmeans = KMeans(n_clusters=4, random_state=RANDOM_STATE)
+# Определение оптимального количества кластеров
+inertias = []
+K = range(1, 11)
+for k in K:
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(X_scaled)
+    inertias.append(kmeans.inertia_)
+
+# Визуализация метода локтя
+plt.figure(figsize=(10, 6))
+plt.plot(K, inertias, 'bx-')
+plt.xlabel('k')
+plt.ylabel('Inertia')
+plt.title('Elbow Method For Optimal k')
+plt.tight_layout()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'kmeans_elbow_method.png'))
+plt.show()
+
+# Кластеризация с оптимальным k
+optimal_k = 4  # Определено на основе графика
+kmeans = KMeans(n_clusters=optimal_k, random_state=42)
 customer_df['Кластер'] = kmeans.fit_predict(X_scaled)
 
 # PCA для визуализации
@@ -129,3 +156,31 @@ for cluster in sorted(customer_df['Кластер'].unique()):
     logger.info(f"Среднее количество пассажиров: {cluster_data['Сред_пассажиров'].mean():.2f}")
     logger.info("\nТоп-5 заказчиков по общей стоимости:")
     logger.info(cluster_data.nlargest(5, 'Общ_стоимость')[['Заказчик', 'Кол_заказов', 'Сред_стоимость']])
+
+# Визуализация средних значений по кластерам
+plt.figure(figsize=(12, 6))
+cluster_analysis = customer_df.groupby('Кластер').agg({
+    'Кол_заказов': ['mean', 'std'],
+    'Сред_стоимость': ['mean', 'std'],
+    'Сред_пассажиров': ['mean', 'std'],
+    'Разнообразие_ТС': ['mean', 'std'],
+    'Период_активности': ['mean', 'std']
+}).round(2)
+cluster_analysis.plot(kind='bar')
+plt.title('Average Values by Cluster')
+plt.xlabel('Cluster')
+plt.ylabel('Value')
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'cluster_characteristics.png'))
+plt.show()
+
+# Распределение размеров кластеров
+plt.figure(figsize=(10, 6))
+sns.countplot(data=customer_df, x='Кластер')
+plt.title('Cluster Size Distribution')
+plt.xlabel('Cluster')
+plt.ylabel('Count')
+plt.tight_layout()
+plt.savefig(os.path.join(OUTPUTS_DIR, 'cluster_size_distribution.png'))
+plt.show()
