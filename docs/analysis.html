@@ -208,23 +208,6 @@
         })
       },
       {
-        id: 'priceDistributionChart',
-        title: 'Распределение цен по типам ТС',
-        desc: 'Распределение цен за час по типам ТС.',
-        plot: () => ({
-          data: [{
-            y: data.priceDistribution.map(i => i.type),
-            x: data.priceDistribution.map(i => i.price),
-            type: 'violin',
-            marker: { color: '#800000' }
-          }],
-          layout: {
-            xaxis: { title: 'Цена за час' },
-            yaxis: { title: 'Тип ТС' }
-          }
-        })
-      },
-      {
         id: 'monthlyOrdersChart',
         title: 'Динамика заказов по месяцам',
         desc: 'Сезонность спроса на транспортные услуги.',
