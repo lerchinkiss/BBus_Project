@@ -1,30 +1,34 @@
 import os
+import json
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+from oauth2client.service_account import ServiceAccountCredentials
 
-# Получаем JSON из переменной окружения
-json_data = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-if not json_data:
-    raise Exception("GOOGLE_CREDENTIALS_JSON переменная не найдена")
+# Получение пути к JSON
+temp_path = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+if not temp_path or not os.path.exists(temp_path):
+    raise Exception("Переменная окружения GOOGLE_CREDENTIALS_JSON не задана или файл не найден.")
 
-# Сохраняем временный JSON-файл
-TEMP_CREDENTIALS_FILE = "temp_google_creds.json"
-with open(TEMP_CREDENTIALS_FILE, "w") as f:
-    f.write(json_data)
+print("Путь к JSON:", temp_path)
+print("Файл существует?", os.path.exists(temp_path))
+print("Размер файла:", os.path.getsize(temp_path))
+with open(temp_path, "r", encoding="utf-8") as f:
+    raw = f.read()
+    print("Первые 100 символов:", raw[:100])
+    data = json.loads(raw)
 
 # Авторизация
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name(TEMP_CREDENTIALS_FILE, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(data, scope)
 client = gspread.authorize(creds)
 
 # Google Таблица
 SHEET_ID = "1Z-m7fQwpU2_YJ8-HG4AuzSKHt_AD9eZ9D4uXlDH3flc"
 sheet = client.open_by_key(SHEET_ID).sheet1
 
+# Сохранение данных заказа
 def save_order_data(order_data):
     try:
-        # Используем даты напрямую, так как они уже в нужном формате
         booking_start = order_data.get("booking_start", "")
         booking_end = order_data.get("booking_end", "")
 
@@ -40,7 +44,7 @@ def save_order_data(order_data):
             booking_end,
             order_data.get("duration_hours", ""),
             order_data.get("total_price", ""),
-            order_data.get("vehicle_type", "") or order_data.get("type", "") or "",
+            order_data.get("vehicle_type", "") or order_data.get("type", ""),
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             order_data.get("route_from", ""),
             order_data.get("route_to", ""),
@@ -48,7 +52,7 @@ def save_order_data(order_data):
             order_data.get("contact", "")
         ]
         sheet.append_row(row)
-        print("Заказ добавлен в Google Таблицу")
+        print("Заказ успешно добавлен в Google Таблицу")
     except Exception as e:
         print(f"Ошибка при сохранении заказа: {str(e)}")
         raise

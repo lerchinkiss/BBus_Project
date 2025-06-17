@@ -1,7 +1,7 @@
 import streamlit as st
 from link_tables import apply_links
 from common_imports import *
-from save_order_data import save_order_data
+from testapp_saveorder import save_order_data
 
 # Настройка страницы
 st.set_page_config(
