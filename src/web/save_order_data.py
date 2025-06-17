@@ -4,18 +4,20 @@ import gspread
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Получение пути к JSON
-temp_path = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-if not temp_path or not os.path.exists(temp_path):
-    raise Exception("Переменная окружения GOOGLE_CREDENTIALS_JSON не задана или файл не найден.")
+# Получение учетных данных Google
+google_creds = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+if not google_creds:
+    raise Exception("Переменная окружения GOOGLE_CREDENTIALS_JSON не задана.")
 
-print("Путь к JSON:", temp_path)
-print("Файл существует?", os.path.exists(temp_path))
-print("Размер файла:", os.path.getsize(temp_path))
-with open(temp_path, "r", encoding="utf-8") as f:
-    raw = f.read()
-    print("Первые 100 символов:", raw[:100])
-    data = json.loads(raw)
+try:
+    # Пробуем сначала как JSON-строку
+    data = json.loads(google_creds)
+except json.JSONDecodeError:
+    # Если не получилось, пробуем как путь к файлу
+    if not os.path.exists(google_creds):
+        raise Exception("GOOGLE_CREDENTIALS_JSON не является валидным JSON или путь к файлу не существует.")
+    with open(google_creds, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
 # Авторизация
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
