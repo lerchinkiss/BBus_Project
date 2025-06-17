@@ -131,6 +131,7 @@ class PlotManager:
         ax.set_ylabel("Количество заказов")
         ax.tick_params(axis='x', rotation=45)
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'top_vehicles.png'))
         plt.close(fig)
         return fig
     
@@ -144,6 +145,7 @@ class PlotManager:
         ax.set_ylabel("Количество заказов")
         ax.tick_params(axis='x', rotation=45)
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'top_customers.png'))
         plt.close(fig)
         return fig
     
@@ -157,6 +159,7 @@ class PlotManager:
         ax.set_ylabel("Общее количество пассажиров")
         ax.tick_params(axis='x', rotation=45)
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'passengers_by_customer.png'))
         plt.close(fig)
         return fig
     
@@ -169,19 +172,24 @@ class PlotManager:
         ax.set_xlabel("Количество мест")
         ax.set_ylabel("Количество типов ТС")
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'capacity_distribution.png'))
         plt.close(fig)
         return fig
-    
+
     def create_top_vehicles_by_capacity_plot(self):
         """Создает график топ-10 ТС по вместимости"""
-        fig, ax = plt.subplots(figsize=(10, 6))
+        df_type_ts = pd.read_excel(os.path.join(DATA_DIR, "filtered_datasets", "uatTypeTS_filtered.xlsx"))
+        type_ts_mapping = dict(zip(df_type_ts['Ref'], df_type_ts['Description']))
         capacity_data = self.df_models.groupby('ТипТС')['ВсегоМест'].max().sort_values(ascending=False).head(10)
+        capacity_data.index = capacity_data.index.map(lambda x: type_ts_mapping.get(x, x))
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.barplot(x=capacity_data.index, y=capacity_data.values, ax=ax)
         ax.set_title("Топ-10 ТС по вместимости")
         ax.set_xlabel("Тип ТС")
         ax.set_ylabel("Количество мест")
         ax.tick_params(axis='x', rotation=45)
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'top_vehicles_by_capacity.png'))
         plt.close(fig)
         return fig
     
@@ -195,8 +203,16 @@ class PlotManager:
 
         # Violinplot
         sns.violinplot(
-            y='ТипТС', x='ЦенаЗаЧас', data=data, ax=axes[0],
-            order=order, palette='Set2', cut=0, inner='quartile'
+            data=data, 
+            y='ТипТС', 
+            x='ЦенаЗаЧас', 
+            ax=axes[0],
+            order=order, 
+            hue='ТипТС',
+            legend=False,
+            palette='Set2', 
+            cut=0, 
+            inner='quartile'
         )
         axes[0].set_title("Violinplot: распределение цен по топ-8 типам ТС")
         axes[0].set_xlabel("Цена за час")
@@ -206,7 +222,13 @@ class PlotManager:
         # Barplot медиан
         medians = data.groupby('ТипТС')['ЦенаЗаЧас'].median().loc[order]
         sns.barplot(
-            y=medians.index, x=medians.values, ax=axes[1], palette='Set2'
+            data=pd.DataFrame({'ТипТС': medians.index, 'ЦенаЗаЧас': medians.values}),
+            y='ТипТС', 
+            x='ЦенаЗаЧас', 
+            ax=axes[1], 
+            hue='ТипТС',
+            legend=False,
+            palette='Set2'
         )
         axes[1].set_title("Медианная цена по типу ТС")
         axes[1].set_xlabel("Медианная цена за час")
@@ -214,6 +236,7 @@ class PlotManager:
         axes[1].grid(True, axis='x', linestyle='--', alpha=0.7)
 
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'price_distribution.png'))
         plt.close(fig)
         return fig
     
@@ -228,6 +251,7 @@ class PlotManager:
         ax.set_ylabel("Количество заказов")
         ax.grid(True)
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'monthly_orders.png'))
         plt.close(fig)
         return fig
     
@@ -242,6 +266,7 @@ class PlotManager:
         ax.tick_params(axis='x', rotation=90)  # Поворачиваем подписи на 90 градусов для лучшей читаемости
         ax.legend(['Минимальная цена', 'Максимальная цена'])
         plt.tight_layout()  # Автоматически настраиваем отступы
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'price_range.png'))
         plt.close(fig)
         return fig
     
@@ -251,12 +276,25 @@ class PlotManager:
         model = CatBoostClassifier()
         model.load_model(os.path.join(MODELS_DIR, 'catboost_typets_model_v3.cbm'))
         
-        # Подготавливаем данные для предсказания
-        X = self.df[['ЦенаЗаЧас', 'КоличествоПассажиров', 'РасчетнаяСтоимость']]
+        # Получаем имена признаков из модели
+        model_feature_names = model.feature_names_
+        
+        # Подготавливаем данные для предсказания в точном порядке признаков модели
+        X = pd.DataFrame()
+        for feature in model_feature_names:
+            if feature in self.df.columns:
+                X[feature] = self.df[feature].fillna(self.df[feature].median())
+            else:
+                logger.warning(f"Признак {feature} отсутствует в данных")
+                X[feature] = 0  # Заполняем нулями отсутствующие признаки
+        
         y_true = self.df['ТипТС']
         
+        # Создаем пул данных с точным порядком признаков
+        pool = Pool(X[model_feature_names])
+        
         # Делаем предсказания
-        y_pred = model.predict(X)
+        y_pred = model.predict(pool)
         
         # Создаем график с двумя подграфиками
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
@@ -277,6 +315,7 @@ class PlotManager:
         ax2.tick_params(axis='x', rotation=45)
         
         plt.tight_layout()
+        plt.savefig(os.path.join(OUTPUTS_DIR, 'model_performance.png'))
         plt.close(fig)
         return fig
 
@@ -294,7 +333,7 @@ def load_and_prepare_data():
     
     # Подготовка данных
     df_orders['Дата'] = pd.to_datetime(df_orders['Date'], errors='coerce')
-    df_orders['Маршрут'] = df_orders['ЗагрузкаПункт'].astype(str) + " → " + df_orders['РазгрузкаПункт'].astype(str)
+    df_orders['Маршрут'] = df_orders['ЗагрузкаПункт'].astype(str) + " -> " + df_orders['РазгрузкаПункт'].astype(str)
     df_orders['КоличествоПассажиров'] = pd.to_numeric(df_orders['КоличествоПассажиров'], errors='coerce')
     
     return df_orders, df_models, df_type_ts
@@ -501,6 +540,8 @@ def test_model(df):
     ax4.set_title('Примеры предсказаний')
     
     plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'model_test_results.png'))
+    plt.close(fig)
     return fig
 
 # === МОДЕЛЬНЫЕ ГРАФИКИ ДЛЯ ДЕМОНСТРАЦИИ ===
@@ -517,6 +558,7 @@ def create_model_confusion_matrix(df, model, cat_features):
     ax.set_xlabel('Предсказанный тип ТС')
     ax.set_ylabel('Истинный тип ТС')
     plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'model_confusion_matrix.png'))
     plt.close(fig)
     return fig
 
@@ -541,6 +583,7 @@ def create_model_accuracy_by_class(df, model, cat_features):
     ax.tick_params(axis='x', rotation=45)
     ax.set_ylim(0, 1)
     plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'model_accuracy_by_class.png'))
     plt.close(fig)
     return fig
 
@@ -557,6 +600,7 @@ def create_model_pred_distribution(df, model, cat_features):
     ax.set_ylabel('Количество предсказаний')
     ax.tick_params(axis='x', rotation=45)
     plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'model_pred_distribution.png'))
     plt.close(fig)
     return fig
 
@@ -589,6 +633,7 @@ def create_model_prediction_examples(df, model, cat_features):
     table.scale(1.2, 1.5)
     ax.set_title('Примеры предсказаний')
     plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUTS_DIR, 'model_prediction_examples.png'))
     plt.close(fig)
     return fig
 

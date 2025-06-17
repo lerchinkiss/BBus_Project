@@ -415,5 +415,3 @@ def get_analysis_data():
 @app.route('/api/download_orders')
 def download_orders():
     return jsonify({'error': 'Функция выгрузки отключена при использовании Google Sheets.'}), 501
-
-
