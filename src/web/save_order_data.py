@@ -38,7 +38,7 @@ def save_order_data(order_data):
             print(f"Предпочтительный ТС ({order_data['wants_preferred_type']}) занят. Выбран другой: {order_data['vehicle_type']}")
 
         row = [
-            order_data.get("company", ""),
+            order_data.get("new_company_name") or order_data.get("company"),
             order_data.get("passengers", ""),
             order_data.get("price", ""),
             order_data.get("status", ""),

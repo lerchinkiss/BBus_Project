@@ -305,7 +305,7 @@ function selectTransport(type) {
   }
 
   // Данные из формы
-  const company = input.value;
+  const company = isNewCustomer ? newCompanyInput.value : input.value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
   const hours = parseFloat(document.getElementById('hours').value);
@@ -335,6 +335,7 @@ function selectTransport(type) {
 
   const postData = {
     company,
+    new_company_name: isNewCustomer ? newCompanyInput.value : '',
     passengers,
     price: pricePerHour,
     status,
@@ -372,7 +373,7 @@ function selectTransport(type) {
 function saveWithoutTransport(type, contactInputId) {
   const contact = document.getElementById(contactInputId).value;
 
-  const company = input.value;
+  const company = isNewCustomer ? newCompanyInput.value : input.value;
   const passengers = parseInt(document.getElementById('passengers').value);
   const pricePerHour = parseFloat(document.getElementById('price').value);
   const hours = parseFloat(document.getElementById('hours').value);
@@ -401,6 +402,7 @@ function saveWithoutTransport(type, contactInputId) {
 
   const postData = {
     company,
+    new_company_name: isNewCustomer ? newCompanyInput.value : '',
     passengers,
     price: pricePerHour,
     status,

@@ -297,6 +297,9 @@ def save_order():
         data = request.json
         print("Получены данные заказа:", data)
 
+        company = data.get("new_company_name") or data.get("company")
+        data["company"] = company
+
         vehicle_type_original = data.get('vehicle_type', '').strip()
         vehicle_type_clean = vehicle_type_original.lower()
         start_str = data.get('booking_start')
